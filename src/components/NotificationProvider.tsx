@@ -12,7 +12,9 @@ import {
   initializePushNotifications,
   sendLocalNotification,
   isNative,
+  getPushToken,
 } from '../services/pushNotificationService';
+import { registerToken, checkBackendHealth, evaluateAndSend } from '../services/pushApi';
 
 const CHECK_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 
@@ -38,6 +40,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
   const checkRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const initializedRef = useRef(false);
+  const backendAvailableRef = useRef(false);
 
   // Initialize push notifications once
   useEffect(() => {
@@ -45,6 +48,18 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       initializedRef.current = true;
       initializePushNotifications().catch((err) => {
         console.warn('[NotificationProvider] Failed to initialize push:', err);
+      });
+
+      // Check backend availability and register token
+      checkBackendHealth().then((available) => {
+        backendAvailableRef.current = available;
+        if (available) {
+          const userId = useUserStore.getState().user?.id;
+          const token = getPushToken();
+          if (userId && token) {
+            registerToken(userId, token);
+          }
+        }
       });
     }
   }, []);
@@ -150,6 +165,32 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       sendLocalNotification(notif.title, notif.message, {
         channelId: notif.type,
       });
+    }
+
+    // Also evaluate on backend for background push delivery
+    if (backendAvailableRef.current) {
+      const userId = useUserStore.getState().user?.id;
+      if (userId) {
+        evaluateAndSend({
+          userId,
+          waterToday: ctx.waterToday,
+          waterGoal: ctx.waterGoal,
+          caloriesToday: ctx.caloriesToday,
+          proteinToday: ctx.proteinToday,
+          calorieGoal: ctx.calorieGoal,
+          proteinGoal: ctx.proteinGoal,
+          mealEntriesToday: ctx.mealEntriesToday,
+          hasWorkoutToday: ctx.hasWorkoutToday,
+          hasWorkedOutToday: ctx.hasWorkedOutToday,
+          hasSleepEntryToday: ctx.hasSleepEntryToday,
+          activeHabitCount: ctx.activeHabitCount,
+          completedHabitCount: ctx.completedHabitCount,
+          hasRecentCheckin: ctx.hasRecentCheckin,
+          daysSinceLastWeight: ctx.daysSinceLastWeight,
+          currentHour: ctx.currentHour,
+          currentDayOfWeek: ctx.currentDayOfWeek,
+        });
+      }
     }
   }, [preferences, canSend, recordSent, addNotification, isInQuietHours]);
 
