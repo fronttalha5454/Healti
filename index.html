@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#0a0a0a" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="description" content="Fitness AI - Your Personal AI Fitness Coach" />
+    <title>Fitness AI</title>
+    <style>
+      body {
+        margin: 0;
+        background: #0a0a0a;
+        overscroll-behavior: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+      #root {
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+      }
+      #error-display {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: #1a1a2e;
+        color: #fff;
+        padding: 20px;
+        font-family: monospace;
+        font-size: 12px;
+        overflow: auto;
+        z-index: 99999;
+        white-space: pre-wrap;
+        word-break: break-all;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="error-display"></div>
+    <div id="root"></div>
+    <script>
+      window.onerror = function(msg, url, line, col, error) {
+        var el = document.getElementById('error-display');
+        el.style.display = 'block';
+        el.innerHTML += '\n[ERROR] ' + msg + '\nURL: ' + url + '\nLine: ' + line + ':' + col + '\nStack: ' + (error && error.stack ? error.stack : 'N/A') + '\n---';
+        console.error('[CAUGHT]', msg, url, line, col, error);
+      };
+      window.onunhandledrejection = function(e) {
+        var el = document.getElementById('error-display');
+        el.style.display = 'block';
+        el.innerHTML += '\n[PROMISE REJECTED] ' + (e.reason && e.reason.message ? e.reason.message : e.reason) + '\nStack: ' + (e.reason && e.reason.stack ? e.reason.stack : 'N/A') + '\n---';
+        console.error('[PROMISE REJECTED]', e.reason);
+      };
+    </script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
