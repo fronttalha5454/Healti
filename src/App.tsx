@@ -2,7 +2,6 @@ import { lazy, Suspense, useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useUserStore } from './store/userStore';
 import { BottomNav } from './components/BottomNav';
-import { FloatingAIButton } from './components/FloatingAIButton';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { NotificationProvider } from './components/NotificationProvider';
 import { App as CapApp } from '@capacitor/app';
@@ -71,7 +70,6 @@ function AppRoutes() {
   return (
     <NotificationProvider>
     <div className="flex flex-col min-h-[100dvh] bg-bg">        <BackButtonHandler />
-      <FloatingAIButton />
       <main className="flex-1 pb-28 overflow-y-auto">
         <Suspense fallback={<PageLoader />}>
         <Routes>

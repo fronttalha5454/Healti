@@ -336,20 +336,7 @@ export function Dashboard() {
           />
         )}
 
-        {/* Fitness AI Button - Highly visible, long horizontal blue button */}
-        <button
-          onClick={() => navigate('/ai-coach')}
-          className="w-full py-4 rounded-2xl font-semibold text-white text-base transition-all active:scale-[0.98] shadow-lg"
-          style={{
-            background: 'linear-gradient(135deg, #3b82f6, #6366f1, #8b5cf6)',
-            boxShadow: '0 6px 20px rgba(59,130,246,0.35)',
-          }}
-        >
-          <div className="flex items-center justify-center gap-3">
-            <MessageCircle size={22} className="text-white" />
-            <span className="text-base font-bold">Fitness AI</span>
-          </div>
-        </button>
+
 
         {/* Smart Insights */}
         {smartInsights.length > 0 && (

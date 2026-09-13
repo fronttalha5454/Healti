@@ -229,7 +229,7 @@ export function AIFoodAdd() {
 
         {/* View: Preview Parsed Foods */}
         {view === 'preview' && (
-          <div className="space-y-4">
+          <div className="space-y-4 pb-24">
             {/* Disclaimer */}
             <div className="bg-warning/5 border border-warning/20 rounded-xl p-3 flex items-start gap-2">
               <AlertTriangle size={14} className="text-warning mt-0.5 flex-shrink-0" />
@@ -474,7 +474,7 @@ export function AIFoodAdd() {
                   <p className="text-sm font-medium text-text-secondary mb-1">Fotoğraf analizi şu anda kullanılamıyor</p>
                   <p className="text-xs text-text-muted mb-4 leading-relaxed">
                     Bu özellik için bir yapay zeka servisi yapılandırılmamış.
-                   照片analiz-api yapılandırıldığında bu özellik aktif olacak.
+                    Fotoğraf analiz API'si yapılandırıldığında bu özellik aktif olacak.
                   </p>
                   <div className="bg-surface rounded-xl p-3 text-left">
                     <p className="text-[11px] text-text-secondary leading-relaxed">

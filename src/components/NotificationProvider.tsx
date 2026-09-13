@@ -10,9 +10,11 @@ import { useUserStore } from '../store/userStore';
 import { evaluateNotifications, type NotificationContext } from '../engine/notifications';
 import {
   initializePushNotifications,
+  requestNotificationPermission,
   sendLocalNotification,
   isNative,
   getPushToken,
+  isPushAvailable,
 } from '../services/pushNotificationService';
 import { registerToken, checkBackendHealth, evaluateAndSend } from '../services/pushApi';
 
@@ -46,20 +48,34 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   useEffect(() => {
     if (!initializedRef.current) {
       initializedRef.current = true;
-      initializePushNotifications().catch((err) => {
-        console.warn('[NotificationProvider] Failed to initialize push:', err);
-      });
+      console.log('[NotificationProvider] Initializing...');
 
-      // Check backend availability and register token
-      checkBackendHealth().then((available) => {
-        backendAvailableRef.current = available;
-        if (available) {
-          const userId = useUserStore.getState().user?.id;
-          const token = getPushToken();
-          if (userId && token) {
-            registerToken(userId, token);
-          }
+      initializePushNotifications().then(() => {
+        // If on native and permission not yet granted, request it
+        if (isNative() && !isPushAvailable()) {
+          console.log('[NotificationProvider] Requesting notification permission...');
+          requestNotificationPermission().then((state) => {
+            console.log('[NotificationProvider] Permission state:', state);
+          });
         }
+
+        // Check backend availability and register token
+        checkBackendHealth().then((available) => {
+          backendAvailableRef.current = available;
+          if (available) {
+            const userId = useUserStore.getState().user?.id;
+            const token = getPushToken();
+            if (userId && token) {
+              registerToken(userId, token);
+            } else {
+              console.log('[NotificationProvider] No token yet — will retry after registration');
+            }
+          } else {
+            console.log('[NotificationProvider] Backend not available — push delivery will be client-side only');
+          }
+        });
+      }).catch((err) => {
+        console.warn('[NotificationProvider] Failed to initialize push:', err);
       });
     }
   }, []);

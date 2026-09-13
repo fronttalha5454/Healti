@@ -124,10 +124,8 @@ export function NotificationSettings() {
           <ChevronLeft size={20} className="text-text-secondary" />
         </button>
         <h1 className="text-xl font-bold text-text">Bildirim Ayarları</h1>
-      </div>
-
-      <div className="px-4 py-4 space-y-4">
-        {/* Platform & Permission Status */}
+      </div>      <div className="px-4 py-4 space-y-4 pb-24">
+        {/* Platform & Permission Status */}        
         <Card variant="elevated">
           <div className="space-y-3">
             <div className="flex items-center justify-between">
@@ -462,7 +460,7 @@ export function NotificationSettings() {
         </div>
 
         {/* Save Button */}
-        <div className="flex gap-3 pt-2">
+        <div className="flex gap-3 pt-2 pb-6">
           <Button
             fullWidth
             size="lg"
@@ -477,13 +475,13 @@ export function NotificationSettings() {
         {/* Reset */}
         <button
           onClick={handleReset}
-          className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-text-muted text-xs active:bg-surface-card transition-colors"
+          className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-text-muted text-xs active:bg-surface-card transition-colors mt-2"
         >
           <RotateCcw size={12} />
           Varsayılana Sıfırla
         </button>
 
-        <p className="text-center text-[10px] text-text-muted py-2">
+        <p className="text-center text-[10px] text-text-muted py-2 pb-6">
           Bildirimler cihazınızda yerel olarak saklanır
         </p>
       </div>

@@ -81,9 +81,7 @@ export function ExerciseLibrary() {
           <h1 className="text-xl font-bold text-text">Egzersiz Kütüphanesi</h1>
         </div>
         <p className="text-sm text-text-muted ml-8">{filtered.length} / {EXERCISES.length} egzersiz</p>
-      </div>
-
-      <div className="px-4 py-3 space-y-3">
+      </div>        <div className="px-4 py-3 space-y-3 pb-24">
         {/* Search */}
         <div className="relative">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
@@ -225,7 +223,7 @@ export function ExerciseLibrary() {
       {/* Add to Workout Modal */}
       {showAddToWorkout && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50">
-          <div className="w-full max-w-lg bg-surface rounded-t-3xl p-6 animate-slide-up safe-bottom">
+          <div className="w-full max-w-lg bg-surface rounded-t-3xl p-6 animate-slide-up safe-bottom-nav">
             <div className="w-10 h-1 bg-border rounded-full mx-auto mb-4" />
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-text">Programa Ekle</h2>
@@ -299,7 +297,7 @@ export function ExerciseLibrary() {
       {/* Substitution Modal */}
       {showSubstitution && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50">
-          <div className="w-full max-w-lg bg-surface rounded-t-3xl p-6 animate-slide-up safe-bottom">
+          <div className="w-full max-w-lg bg-surface rounded-t-3xl p-6 animate-slide-up safe-bottom-nav">
             <div className="w-10 h-1 bg-border rounded-full mx-auto mb-4" />
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-text">Alternatif Egzersizler</h2>
