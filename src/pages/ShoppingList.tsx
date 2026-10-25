@@ -449,7 +449,7 @@ export function ShoppingList() {
       {/* Add Item Modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50">
-          <div className="w-full max-w-lg bg-surface rounded-t-3xl p-6 animate-slide-up safe-bottom-nav">
+          <div className="w-full max-w-lg bg-surface rounded-t-3xl p-6 animate-slide-up safe-bottom">
             <div className="w-10 h-1 bg-border rounded-full mx-auto mb-6" />
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-text">Malzeme Ekle</h2>

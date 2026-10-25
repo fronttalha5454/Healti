@@ -216,7 +216,7 @@ export function Profile() {
         </div>
 
         <p className="text-center text-[10px] text-text-muted py-4">
-          Fitness AI v1.0 · Verileriniz cihazınızda saklanır
+          Healthi v1.0 · Verileriniz cihazınızda saklanır
         </p>
       </div>
     </div>

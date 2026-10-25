@@ -1,4 +1,4 @@
-import { Component, type ReactNode } from 'react';
+import React, { Component, ErrorInfo, ReactNode } from 'react';
 
 interface Props {
   children: ReactNode;
@@ -6,39 +6,38 @@ interface Props {
 
 interface State {
   hasError: boolean;
-  error: Error | null;
-  errorInfo: string;
+  error?: Error;
 }
 
 export class ErrorBoundary extends Component<Props, State> {
-  state: State = { hasError: false, error: null, errorInfo: '' };
+  public state: State = {
+    hasError: false
+  };
 
-  static getDerivedStateFromError(error: Error): Partial<State> {
+  public static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('ERROR BOUNDARY CAUGHT:', error, errorInfo);
-    this.setState({ errorInfo: errorInfo.componentStack || '' });
+  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error("Uncaught error:", error, errorInfo);
   }
 
-  render() {
+  public render() {
     if (this.state.hasError) {
       return (
-        <div style={{ padding: 20, color: '#fff', background: '#1a1a2e', minHeight: '100dvh', fontFamily: 'monospace', fontSize: 12, overflow: 'auto' }}>
-          <h2 style={{ color: '#ef4444', fontSize: 18 }}>⚠️ HATA YAKALANDI</h2>
-          <pre style={{ color: '#f59e0b', whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
-            {this.state.error?.message}
-          </pre>
-          <pre style={{ color: '#94a3b8', whiteSpace: 'pre-wrap', wordBreak: 'break-all', fontSize: 10 }}>
-            {this.state.error?.stack}
-          </pre>
-          <pre style={{ color: '#64748b', whiteSpace: 'pre-wrap', wordBreak: 'break-all', fontSize: 10 }}>
-            {this.state.errorInfo}
-          </pre>
+        <div style={{ padding: '20px', textAlign: 'center', fontFamily: 'sans-serif' }}>
+          <h2>Bir şeyler yanlış gitti.</h2>
+          <p>{this.state.error?.message || "Beklenmeyen bir hata oluştu."}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            style={{ padding: '10px 20px', background: '#4F46E5', color: '#fff', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
+          >
+            Sayfayı Yenile
+          </button>
         </div>
       );
     }
-    return this.props.children;
+
+    return this.children;
   }
 }

@@ -6,17 +6,12 @@ import { getTodaySession, isTodayWorkoutDay, getTodayDateString } from '../engin
 import { Card } from '../components/ui/Card';
 import { Dumbbell, Clock, ChevronRight, ChevronLeft, CheckCircle2, Flame, Check, BarChart3, Target, TrendingUp, Zap, Calendar, Home, Building2 } from 'lucide-react';
 import { useState, useCallback } from 'react';
-import { WeeklyPlan } from '../components/WeeklyPlan';
-import { useWeeklyPlanStore } from '../store/weeklyPlanStore';
 
 export function Workout() {
   const { activePlan, workoutLogs, completeWorkout, getAnalytics, customPrograms, setPlan, startWorkout } = useWorkoutStore();
   const { profile, updateProfile } = useUserStore();
-  const { workoutPlan } = useWeeklyPlanStore();
   const navigate = useNavigate();
   const [showAnalytics, setShowAnalytics] = useState(false);
-  const [showWeeklyPlan, setShowWeeklyPlan] = useState(false);
-  const [planCreated, setPlanCreated] = useState(false);
 
   // Environment filter for 'both' mode
   const profileEnvironment = profile?.environment || 'gym';
@@ -46,8 +41,6 @@ export function Workout() {
     if (profile) {
       const plan = selectWorkoutProgram(profile);
       setPlan(plan);
-      setPlanCreated(true);
-      setTimeout(() => setPlanCreated(false), 2500);
     }
   };
 
@@ -71,18 +64,12 @@ export function Workout() {
       <AnalyticsView
         analytics={analytics}
         onBack={() => setShowAnalytics(false)}
-        bottomInset={28}
       />
     );
   }
 
   return (
     <div className="min-h-[100dvh] bg-bg">
-      {planCreated && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[70] bg-accent/20 text-accent text-sm font-medium px-4 py-2 rounded-xl animate-slide-up">
-          ✅ Program Oluşturuldu
-        </div>
-      )}
       <div className="safe-top px-4 pt-4 pb-2">
         <div className="flex items-center gap-2 mb-1">
           <button onClick={() => navigate('/')} className="p-1.5 -ml-1.5 rounded-xl hover:bg-surface-card transition-colors">
@@ -92,7 +79,8 @@ export function Workout() {
         </div>
         <p className="text-sm text-text-muted ml-8">Program ve antrenman geçmişi</p>
       </div>
-          <div className="px-4 pb-24 space-y-4">
+
+      <div className="px-4 py-4 space-y-4">
         {/* Weekly Summary */}
         <Card variant="elevated" className="cursor-pointer active:scale-[0.98] transition-transform" onClick={() => setShowAnalytics(true)}>
           <div className="flex items-center justify-between">
@@ -144,25 +132,6 @@ export function Workout() {
               )}
             </div>
           </Card>
-        )}
-
-        {/* Weekly Plan Toggle */}
-        <button
-          onClick={() => setShowWeeklyPlan(!showWeeklyPlan)}
-          className={`w-full py-3.5 rounded-2xl font-semibold text-sm active:scale-[0.97] transition-all flex items-center justify-center gap-2 ${
-            showWeeklyPlan
-              ? 'bg-accent text-white shadow-lg shadow-accent/25'
-              : 'bg-surface-card border border-border-light text-text-secondary'
-          }`}
-        >
-          <Calendar size={16} />
-          📅 Haftalık Program
-          <ChevronRight size={14} className={`transition-transform ${showWeeklyPlan ? 'rotate-90' : ''}`} />
-        </button>
-
-        {/* Weekly Plan Content */}
-        {showWeeklyPlan && (
-          <WeeklyPlan />
         )}
 
         {/* Environment Toggle for BOTH mode */}
@@ -378,7 +347,7 @@ export function Workout() {
 }
 
 /* ─── Analytics View ─── */
-function AnalyticsView({ analytics, onBack, bottomInset = 0 }: { analytics: any; onBack: () => void; bottomInset?: number }) {
+function AnalyticsView({ analytics, onBack }: { analytics: any; onBack: () => void }) {
   return (
     <div className="min-h-[100dvh] bg-bg">
       <div className="safe-top px-4 pt-4 pb-2">
@@ -390,7 +359,7 @@ function AnalyticsView({ analytics, onBack, bottomInset = 0 }: { analytics: any;
         </div>
       </div>
 
-      <div className={`px-4 py-4 space-y-4 pb-24`}>
+      <div className="px-4 py-4 space-y-4">
         {/* Quick Stats */}
         <div className="grid grid-cols-2 gap-3">
           <Card variant="elevated" padding="sm" className="text-center">

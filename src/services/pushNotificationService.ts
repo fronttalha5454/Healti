@@ -27,32 +27,12 @@ interface PushNotificationServiceState {
   isRegistered: boolean;
 }
 
-const TOKEN_STORAGE_KEY = 'fitness-ai-push-token';
-const TOKEN_PLATFORM_KEY = 'fitness-ai-push-platform';
-
 let serviceState: PushNotificationServiceState = {
   isNative: false,
   permissionState: 'default',
-  token: loadPersistedToken(),
+  token: null,
   isRegistered: false,
 };
-
-function loadPersistedToken(): string | null {
-  try {
-    return localStorage.getItem(TOKEN_STORAGE_KEY);
-  } catch {
-    return null;
-  }
-}
-
-function persistToken(token: string): void {
-  try {
-    localStorage.setItem(TOKEN_STORAGE_KEY, token);
-    localStorage.setItem(TOKEN_PLATFORM_KEY, serviceState.isNative ? 'android' : 'web');
-  } catch {
-    // localStorage unavailable — token will be lost on restart
-  }
-}
 
 function isNativePlatform(): boolean {
   try {
@@ -90,7 +70,7 @@ export async function requestNotificationPermission(): Promise<NotificationPermi
 
 /**
  * Send a local notification (shows immediately).
- * On native: uses LocalNotifications for foreground display.
+ * On native: uses browser-style notification via Capacitor (foreground display).
  * On browser: uses Notification API.
  *
  * Note: For background push, a server must send FCM messages using the registered token.
@@ -98,48 +78,14 @@ export async function requestNotificationPermission(): Promise<NotificationPermi
 export async function sendLocalNotification(
   title: string,
   body: string,
-  options?: {
+  _options?: {
     id?: number;
     channelId?: string;
   }
 ): Promise<boolean> {
-  if (serviceState.isNative) {
-    return sendNativeLocalNotification(title, body, options);
-  }
+  // On native, foreground notifications are handled by the plugin's presentationOptions.
+  // For local display, we use the browser-compatible approach.
   return sendBrowserNotification(title, body);
-}
-
-async function sendNativeLocalNotification(
-  title: string,
-  body: string,
-  options?: { id?: number; channelId?: string }
-): Promise<boolean> {
-  try {
-    const { LocalNotifications } = await import('@capacitor/local-notifications');
-    const permission = await LocalNotifications.checkPermissions();
-    if (permission.display !== 'granted') {
-      console.warn('[Push] Local notification permission not granted');
-      return false;
-    }
-
-    const notifId = options?.id ?? Math.floor(Math.random() * 2147483647);
-    await LocalNotifications.schedule({
-      notifications: [{
-        title,
-        body,
-        id: notifId,
-        channelId: options?.channelId ?? 'default',
-        smallIcon: 'ic_launcher_foreground',
-        largeIcon: 'ic_launcher',
-      }],
-    });
-    console.log(`[Push] Local notification scheduled: ${title}`);
-    return true;
-  } catch (error) {
-    // LocalNotifications plugin may not be installed — fall back to browser
-    console.warn('[Push] LocalNotifications not available, falling back to browser:', error);
-    return sendBrowserNotification(title, body);
-  }
 }
 
 /**
@@ -236,40 +182,32 @@ async function initializeNativePush(): Promise<void> {
   try {
     const { PushNotifications } = await import('@capacitor/push-notifications');
 
-    console.log('[Push] Initializing native push notifications...');
-
     // Check permission status
     const permission = await PushNotifications.checkPermissions();
-    console.log('[Push] Current permission:', permission.receive);
     serviceState.permissionState = permission.receive === 'granted' ? 'granted' : 'denied';
 
     // Create notification channels for each notification type
     await createNotificationChannels();
 
     if (serviceState.permissionState === 'granted') {
-      console.log('[Push] Permission granted, registering for push...');
       await registerForPush(PushNotifications);
-    } else {
-      console.log('[Push] Permission not granted. Will request on next user action.');
     }
 
     // Listen for registration success
     PushNotifications.addListener('registration', (token) => {
       serviceState.token = token.value;
       serviceState.isRegistered = true;
-      persistToken(token.value);
-      console.log('[Push] ✅ Registration token received and persisted:', token.value.substring(0, 30) + '...');
+      console.log('[Push] Registration token:', token.value);
     });
 
     // Listen for registration error
     PushNotifications.addListener('registrationError', (error) => {
-      console.error('[Push] ❌ Registration error:', error);
-      console.error('[Push] This usually means google-services.json is missing or invalid.');
+      console.error('[Push] Registration error:', error);
     });
 
     // Listen for incoming notifications (app in foreground)
     PushNotifications.addListener('pushNotificationReceived', (notification) => {
-      console.log('[Push] 📩 Foreground notification received:', notification.title, notification.body);
+      console.log('[Push] Received:', notification);
       // Store in notification center
       import('../store/notificationStore').then(({ useNotificationStore }) => {
         useNotificationStore.getState().addNotification({
@@ -289,17 +227,16 @@ async function initializeNativePush(): Promise<void> {
 
     // Listen for notification tap (app opened from notification)
     PushNotifications.addListener('pushNotificationActionPerformed', (action) => {
-      console.log('[Push] 👆 Notification tapped:', action.notification.title);
+      console.log('[Push] Action performed:', action);
       const data = action.notification.data;
       if (data?.path) {
         window.location.hash = `#${data.path}`;
       }
     });
 
-    console.log('[Push] ✅ Native push notifications initialized successfully');
+    console.log('[Push] Native push notifications initialized');
   } catch (error) {
-    console.warn('[Push] ❌ Failed to initialize native push:', error);
-    console.warn('[Push] Falling back to browser notifications...');
+    console.warn('[Push] Failed to initialize native push:', error);
     // Fall back to browser notifications
     await initializeBrowserNotifications();
   }
@@ -329,9 +266,7 @@ async function createNotificationChannels(): Promise<void> {
 async function requestNativePermission(): Promise<NotificationPermissionState> {
   try {
     const { PushNotifications } = await import('@capacitor/push-notifications');
-    console.log('[Push] Requesting notification permission...');
     const permission = await PushNotifications.requestPermissions();
-    console.log('[Push] Permission result:', permission.receive);
     serviceState.permissionState = permission.receive === 'granted' ? 'granted' : 'denied';
 
     if (serviceState.permissionState === 'granted') {

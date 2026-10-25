@@ -9,8 +9,7 @@ import { FOODS, searchFoods, calculateFoodCalories, FOOD_CATEGORIES, getPortionE
 import type { Food } from '../data/foods';
 import type { FoodEntry, MealType } from '../types';
 import { MEAL_TYPE_LABELS } from '../types';
-import { Plus, X, Search, ChevronRight, ChevronLeft, Droplets, Trash2, Sparkles, Calendar } from 'lucide-react';
-import { WeeklyPlan } from '../components/WeeklyPlan';
+import { Plus, X, Search, ChevronRight, ChevronLeft, Droplets, Trash2, Sparkles } from 'lucide-react';
 
 const MEAL_TYPES: { value: MealType; label: string; icon: string }[] = [
   { value: 'breakfast', label: MEAL_TYPE_LABELS.breakfast.label, icon: MEAL_TYPE_LABELS.breakfast.icon },
@@ -32,12 +31,11 @@ const SNACK_SUB_CATEGORIES = [
 
 export function Nutrition() {
   const navigate = useNavigate();
-  const { plan, addFood, removeFood, getDailyTotals, getEntriesForDate } = useNutritionStore();
+  const { plan, addFood, getDailyTotals, getEntriesForDate } = useNutritionStore();
   const { getDailyTotal: getWaterTotal, dailyGoal: waterGoal, entries: waterEntries, addWater, removeWater } = useWaterStore();
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedMeal, setSelectedMeal] = useState<string>('lunch');
   const [showWaterPanel, setShowWaterPanel] = useState(false);
-  const [showWeeklyPlan, setShowWeeklyPlan] = useState(false);
 
   const today = new Date().toISOString().split('T')[0];
   const dailyTotals = getDailyTotals(today);
@@ -247,25 +245,6 @@ export function Nutrition() {
           )}
         </Card>
 
-        {/* Weekly Plan Toggle */}
-        <button
-          onClick={() => setShowWeeklyPlan(!showWeeklyPlan)}
-          className={`w-full py-3.5 rounded-2xl font-semibold text-sm active:scale-[0.97] transition-all flex items-center justify-center gap-2 ${
-            showWeeklyPlan
-              ? 'bg-accent text-white shadow-lg shadow-accent/25'
-              : 'bg-surface-card border border-border-light text-text-secondary'
-          }`}
-        >
-          <Calendar size={16} />
-          📅 Haftalık Beslenme Planı
-          <ChevronRight size={14} className={`transition-transform ${showWeeklyPlan ? 'rotate-90' : ''}`} />
-        </button>
-
-        {/* Weekly Plan Content */}
-        {showWeeklyPlan && (
-          <WeeklyPlan />
-        )}
-
         {/* Meal Sections */}
         {MEAL_TYPES.map((meal) => {
           const mealEntries = todayEntries.filter((e) => e.mealType === meal.value);
@@ -293,24 +272,15 @@ export function Nutrition() {
                 <div className="space-y-2">
                   {mealEntries.map((entry) => (
                     <div key={entry.id} className="flex items-center justify-between py-1.5 border-b border-border-light last:border-0">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm text-text truncate">{entry.name}</p>
+                      <div className="flex-1">
+                        <p className="text-sm text-text">{entry.name}</p>
                         <p className="text-xs text-text-muted">{entry.amount}{entry.unit}</p>
                       </div>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        <div className="text-right">
-                          <p className="text-sm font-medium text-text">{entry.calories} kcal</p>
-                          <p className="text-[10px] text-text-muted">
-                            P:{Math.round(entry.protein)}g K:{Math.round(entry.carbs)}g Y:{Math.round(entry.fat)}g
-                          </p>
-                        </div>
-                        <button
-                          onClick={() => removeFood(entry.id)}
-                          className="p-1.5 rounded-lg hover:bg-danger/10 transition-colors flex-shrink-0"
-                          aria-label="Yemeği sil"
-                        >
-                          <Trash2 size={14} className="text-danger" />
-                        </button>
+                      <div className="text-right">
+                        <p className="text-sm font-medium text-text">{entry.calories} kcal</p>
+                        <p className="text-[10px] text-text-muted">
+                          P:{Math.round(entry.protein)}g K:{Math.round(entry.carbs)}g Y:{Math.round(entry.fat)}g
+                        </p>
                       </div>
                     </div>
                   ))}
@@ -408,7 +378,7 @@ function AddFoodModal({
   if (selectedFood) {
     return (
       <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50">
-        <div className="w-full max-w-lg bg-surface rounded-t-3xl p-6 animate-slide-up safe-bottom-nav">
+        <div className="w-full max-w-lg bg-surface rounded-t-3xl p-6 animate-slide-up safe-bottom">
           <div className="w-10 h-1 bg-border rounded-full mx-auto mb-6" />
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold text-text">{selectedFood.nameTr}</h2>
@@ -494,11 +464,9 @@ function AddFoodModal({
               </Card>
             )}
 
-            <div className="pb-2">
             <Button fullWidth onClick={() => onAdd(selectedFood, grams)}>
               Ekle
             </Button>
-          </div>
           </div>
         </div>
       </div>
@@ -509,7 +477,7 @@ function AddFoodModal({
   if (showCustomForm) {
     return (
       <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50">
-        <div className="w-full max-w-lg bg-surface rounded-t-3xl p-6 animate-slide-up safe-bottom-nav max-h-[85dvh] flex flex-col">
+        <div className="w-full max-w-lg bg-surface rounded-t-3xl p-6 animate-slide-up safe-bottom max-h-[85dvh] flex flex-col">
           <div className="w-10 h-1 bg-border rounded-full mx-auto mb-4" />
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -659,110 +627,103 @@ function AddFoodModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50">
-      <div className="w-full max-w-lg bg-surface rounded-t-3xl animate-slide-up safe-bottom-nav max-h-[85dvh] flex flex-col">
-        {/* ─── Sticky Header: Title + Search + Toolbar ─── */}
-        <div className="flex-shrink-0 bg-surface px-6 pt-6 pb-0">
-          <div className="w-10 h-1 bg-border rounded-full mx-auto mb-4" />
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-text">{isSnack ? 'Ara Öğün Ekle' : 'Yemek Ekle'}</h2>
-            <button onClick={onClose} className="p-2">
-              <X size={18} className="text-text-muted" />
-            </button>
-          </div>
-
-          {/* Search */}
-          <div className="relative mb-3">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder={isSnack ? 'Meyve, kahve, kakao ara...' : 'Yemek ara...'}
-              className="w-full bg-surface-card border border-border rounded-xl pl-10 pr-4 py-2.5 text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/50"
-            />
-          </div>
-
-          {/* AI Suggestion when not found */}
-          {showAISuggestion && (
-            <div className="mb-3 p-3 bg-primary/5 border border-primary/10 rounded-xl">
-              <p className="text-xs text-text-secondary mb-2">
-                🔍 "<span className="font-medium text-text">{search}</span>" bulunamadı
-              </p>
-              <button
-                onClick={() => {
-                  setCustomFood({ ...customFood, nameTr: search });
-                  setSearch('');
-                  setShowCustomForm(true);
-                }}
-                className="w-full py-2.5 rounded-xl bg-primary/10 text-primary text-sm font-medium flex items-center justify-center gap-2 hover:bg-primary/15 transition-colors"
-              >
-                🤖 AI ile Besin Ekle
-              </button>
-            </div>
-          )}
-
-          {/* Categories Toolbar — sticky within modal, opaque background + border */}
-          <div className="flex-shrink-0 rounded-xl bg-surface border border-border-light -mx-6 px-6 pb-3">
-            <div className="flex gap-2 overflow-x-auto hide-scrollbar py-2">
-              {isSnack ? (
-                <>
-                  <button
-                    onClick={() => setActiveSnackCategory('all')}
-                    className={`px-3 py-1.5 rounded-lg text-xs whitespace-nowrap transition-all flex-shrink-0 ${
-                      activeSnackCategory === 'all'
-                        ? 'bg-primary text-white'
-                        : 'bg-surface-card text-text-muted border border-border'
-                    }`}
-                  >
-                    Tümü
-                  </button>
-                  {SNACK_SUB_CATEGORIES.map((cat) => (
-                    <button
-                      key={cat.id}
-                      onClick={() => setActiveSnackCategory(cat.id)}
-                      className={`px-3 py-1.5 rounded-lg text-xs whitespace-nowrap transition-all flex-shrink-0 ${
-                        activeSnackCategory === cat.id
-                          ? 'bg-primary text-white'
-                          : 'bg-surface-card text-text-muted border border-border'
-                      }`}
-                    >
-                      {cat.emoji} {cat.label}
-                    </button>
-                  ))}
-                </>
-              ) : (
-                <>
-                  <button
-                    onClick={() => setActiveCategory('all')}
-                    className={`px-3 py-1.5 rounded-lg text-xs whitespace-nowrap transition-all flex-shrink-0 ${
-                      activeCategory === 'all'
-                        ? 'bg-primary text-white'
-                        : 'bg-surface-card text-text-muted border border-border'
-                    }`}
-                  >
-                    Tümü
-                  </button>
-                  {FOOD_CATEGORIES.map((cat) => (
-                    <button
-                      key={cat.id}
-                      onClick={() => setActiveCategory(cat.id)}
-                      className={`px-3 py-1.5 rounded-lg text-xs whitespace-nowrap transition-all flex-shrink-0 ${
-                        activeCategory === cat.id
-                          ? 'bg-primary text-white'
-                          : 'bg-surface-card text-text-muted border border-border'
-                      }`}
-                    >
-                      {cat.emoji} {cat.label}
-                    </button>
-                  ))}
-                </>
-              )}
-            </div>
-          </div>
+      <div className="w-full max-w-lg bg-surface rounded-t-3xl p-6 animate-slide-up safe-bottom max-h-[80dvh] flex flex-col">
+        <div className="w-10 h-1 bg-border rounded-full mx-auto mb-4" />
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-bold text-text">{isSnack ? 'Ara Öğün Ekle' : 'Yemek Ekle'}</h2>
+          <button onClick={onClose} className="p-2">
+            <X size={18} className="text-text-muted" />
+          </button>
         </div>
 
-        {/* ─── Scrollable Food List ─── */}
-        <div className="flex-1 overflow-y-auto space-y-1 px-6 pt-3 pb-4">
+        {/* Search */}
+        <div className="relative mb-3">
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={isSnack ? 'Meyve, kahve, kakao ara...' : 'Yemek ara...'}
+            className="w-full bg-surface-card border border-border rounded-xl pl-10 pr-4 py-2.5 text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/50"
+          />
+        </div>
+
+        {/* AI Suggestion when not found */}
+        {showAISuggestion && (
+          <div className="mb-3 p-3 bg-primary/5 border border-primary/10 rounded-xl">
+            <p className="text-xs text-text-secondary mb-2">
+              🔍 "<span className="font-medium text-text">{search}</span>" bulunamadı
+            </p>
+            <button
+              onClick={() => {
+                setCustomFood({ ...customFood, nameTr: search });
+                setSearch('');
+                setShowCustomForm(true);
+              }}
+              className="w-full py-2.5 rounded-xl bg-primary/10 text-primary text-sm font-medium flex items-center justify-center gap-2 hover:bg-primary/15 transition-colors"
+            >
+              🤖 AI ile Besin Ekle
+            </button>
+          </div>
+        )}
+
+        {/* Categories */}
+        {isSnack ? (
+          <div className="flex gap-2 overflow-x-auto hide-scrollbar mb-3 pb-1">
+            <button
+              onClick={() => setActiveSnackCategory('all')}
+              className={`px-3 py-1.5 rounded-lg text-xs whitespace-nowrap transition-all ${
+                activeSnackCategory === 'all'
+                  ? 'bg-primary text-white'
+                  : 'bg-surface-card text-text-muted border border-border'
+              }`}
+            >
+              Tümü
+            </button>
+            {SNACK_SUB_CATEGORIES.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setActiveSnackCategory(cat.id)}
+                className={`px-3 py-1.5 rounded-lg text-xs whitespace-nowrap transition-all ${
+                  activeSnackCategory === cat.id
+                    ? 'bg-primary text-white'
+                    : 'bg-surface-card text-text-muted border border-border'
+                }`}
+              >
+                {cat.emoji} {cat.label}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="flex gap-2 overflow-x-auto hide-scrollbar mb-3 pb-1">
+            <button
+              onClick={() => setActiveCategory('all')}
+              className={`px-3 py-1.5 rounded-lg text-xs whitespace-nowrap transition-all ${
+                activeCategory === 'all'
+                  ? 'bg-primary text-white'
+                  : 'bg-surface-card text-text-muted border border-border'
+              }`}
+            >
+              Tümü
+            </button>
+            {FOOD_CATEGORIES.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setActiveCategory(cat.id)}
+                className={`px-3 py-1.5 rounded-lg text-xs whitespace-nowrap transition-all ${
+                  activeCategory === cat.id
+                    ? 'bg-primary text-white'
+                    : 'bg-surface-card text-text-muted border border-border'
+                }`}
+              >
+                {cat.emoji} {cat.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Food List */}
+        <div className="flex-1 overflow-y-auto space-y-1">
           {filteredFoods.map((food) => (
             <button
               key={food.id}

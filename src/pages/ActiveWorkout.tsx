@@ -443,7 +443,7 @@ export function ActiveWorkout() {
         })}
 
         {/* Complete Button */}
-        <div className="pt-4 pb-24">
+        <div className="pt-4 pb-8">
           {allSetsCompleted ? (
             <Button
               fullWidth
@@ -470,7 +470,7 @@ export function ActiveWorkout() {
       {/* Complete Modal */}
       {showCompleteModal && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50">
-          <div className="w-full max-w-lg bg-surface rounded-t-3xl p-6 animate-slide-up safe-bottom-nav">
+          <div className="w-full max-w-lg bg-surface rounded-t-3xl p-6 animate-slide-up safe-bottom">
             <div className="w-10 h-1 bg-border rounded-full mx-auto mb-6" />
             <h2 className="text-lg font-bold text-text mb-4">Antrenmanı Tamamla</h2>
 

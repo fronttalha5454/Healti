@@ -1,0 +1,44 @@
+name: Fitness AI CI/CD
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run lint
+        run: npm run lint
+        
+      - name: Run unit tests
+        run: npm run test
+        
+      - name: Build web app
+        run: npm run build
+        
+      - name: Generate APK (Android)
+        run: |
+          cd android
+          export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
+          ./gradlew clean assembleDebug -Dorg.gradle.jvmargs="-Xmx2048m"
+          
+      - name: Upload APK as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fitness-ai-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk

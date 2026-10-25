@@ -1,7 +1,8 @@
 import { lazy, Suspense, useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
-import { useUserStore } from './store/userStore';
-import { BottomNav } from './components/BottomNav';
+import { useUserStore } from './presentation/store/userStore';
+import { BottomNav } from './presentation/components/BottomNav';
+import { FloatingAIButton } from './components/FloatingAIButton';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { NotificationProvider } from './components/NotificationProvider';
 import { App as CapApp } from '@capacitor/app';
@@ -70,6 +71,7 @@ function AppRoutes() {
   return (
     <NotificationProvider>
     <div className="flex flex-col min-h-[100dvh] bg-bg">        <BackButtonHandler />
+      <FloatingAIButton />
       <main className="flex-1 pb-28 overflow-y-auto">
         <Suspense fallback={<PageLoader />}>
         <Routes>
@@ -150,7 +152,7 @@ function LoginPlaceholder() {
           <div className="w-20 h-20 mx-auto rounded-2xl gradient-primary flex items-center justify-center">
             <span className="text-3xl">💪</span>
           </div>
-          <h1 className="text-3xl font-bold text-gradient">Fitness AI</h1>
+          <h1 className="text-3xl font-bold text-gradient">Healthi</h1>
           <p className="text-text-secondary">Kişisel Fitness Koçun</p>
         </div>
         <div className="space-y-3">

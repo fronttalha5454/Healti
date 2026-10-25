@@ -292,7 +292,7 @@ export function AICoach() {
 
       {/* Quick Questions */}
       {messages.length <= 1 && (
-        <div className="px-4 py-3 pb-24">
+        <div className="px-4 py-3">
           <p className="text-xs text-text-muted mb-2">Hızlı sorular:</p>
           <div className="grid grid-cols-2 gap-2">
             {quickQuestions.map((q) => (
@@ -310,7 +310,7 @@ export function AICoach() {
       )}
 
       {/* Input */}
-      <div className="px-4 pb-24 safe-bottom">
+      <div className="px-4 pb-4 safe-bottom">
         <div className="flex items-center gap-2 bg-surface-card border border-border rounded-2xl p-2">
           <input
             type="text"
