@@ -1,3 +1,4 @@
+import { toLocalDateString } from '../../utils/date';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { WorkoutPlan, WorkoutLog, WorkoutSession, ExerciseLog, SetLog, WorkoutAnalytics, WorkoutExercise } from '../../types';
@@ -191,7 +192,7 @@ export const useWorkoutStore = create<WorkoutState>()(
             id: `log_${Date.now()}`,
             userId: '',
             sessionId: state.activeWorkout.sessionId,
-            date: now.toISOString().split('T')[0],
+            date: toLocalDateString(now),
             exercises: state.activeWorkout.exerciseLogs,
             duration,
             completed: true,
@@ -202,7 +203,7 @@ export const useWorkoutStore = create<WorkoutState>()(
 
           // Track PRs from completed sets
           const newPRs = [...state.personalRecords];
-          const today = now.toISOString().split('T')[0];
+          const today = toLocalDateString(now);
           state.activeWorkout.exerciseLogs.forEach((exLog) => {
             const completedSets = exLog.sets.filter((s) => s.completed);
             if (completedSets.length === 0) return;
@@ -401,7 +402,7 @@ export const useWorkoutStore = create<WorkoutState>()(
           const logDate = new Date(sortedDates[i]);
           const expectedDate = new Date();
           expectedDate.setDate(expectedDate.getDate() - i);
-          if (logDate.toISOString().split('T')[0] === expectedDate.toISOString().split('T')[0]) {
+          if (toLocalDateString(logDate) === toLocalDateString(expectedDate)) {
             currentStreak++;
           } else {
             break;
@@ -433,7 +434,7 @@ export const useWorkoutStore = create<WorkoutState>()(
           for (let i = 0; i < 7; i++) {
             const d = new Date();
             d.setDate(d.getDate() - i);
-            weekDates.push(d.toISOString().split('T')[0]);
+            weekDates.push(toLocalDateString(d));
           }
           const workoutDays = new Set(workoutLogs.map(l => l.date));
           // Count sessions that should have been done but weren't

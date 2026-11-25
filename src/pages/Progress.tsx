@@ -1,3 +1,4 @@
+import { toLocalDateString } from '../utils/date';
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProgressStore } from '../presentation/store/progressStore';
@@ -31,7 +32,7 @@ export function Progress() {
   const [measurementValues, setMeasurementValues] = useState<Partial<Record<string, number>>>({});  const [chartRange, setChartRange] = useState<ChartRange>(7);
   const [showBodyShaping, setShowBodyShaping] = useState(false);
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = toLocalDateString();
 
   // Prepare weight chart data
   const getWeightData = (range: ChartRange) => {

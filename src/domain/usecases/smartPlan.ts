@@ -1,3 +1,5 @@
+import { getTodayCanonicalDay, normalizeDay } from './sessionMatcher';
+import { toLocalDateString } from '../../utils/date';
 import type { Profile } from '../../types';
 import type { FoodEntry } from '../../types';
 import { getExerciseById, MUSCLE_GROUP_LABELS } from '../../infrastructure/data/data/exercises';
@@ -305,7 +307,7 @@ const SUPPLEMENT_RECOMMENDATIONS: Record<string, string[]> = {
   basen: [
     '💪 **Whey Protein:** Her öğüne ek protein için ideal. Günlük protein hedefine ulaşmana yardımcı olur.',
     '🍵 **Yeşil Çay Ekstresi:** Yağ yakımını %10-17 hızlandırabilir. Günde 2-3 bardak.',
-    '🐟 **Omega-3:** Yağ yakımını destekler,抗inflamatuar etkisi var.',
+    '🐟 **Omega-3:** Yağ yakımını destekler, antiinflamatuar etkisi var.',
     '💊 **BCAA:** Antrenman sırasında kas kaybını önler.',
   ],
   karin: [
@@ -444,6 +446,12 @@ export function generateCompletePlan(profile: Profile): CompletePlan {
   };
 }
 
+/** Programda bugünün antrenmanı; dinlenme günüyse null. */
+export function getTodayWorkout(plan: CompletePlan | null | undefined) {
+  const today = getTodayCanonicalDay();
+  return plan?.weeklyWorkout.find((w) => normalizeDay(w.dayName) === today) ?? null;
+}
+
 function formatDayName(day: string): string {
   const map: Record<string, string> = {
     monday: 'Pazartesi', tuesday: 'Salı', wednesday: 'Çarşamba',
@@ -528,7 +536,7 @@ export function generateSmartCoachResponse(
 ): string {
   const lower = userMessage.toLowerCase();
   const ctx = nutritionContext;
-  const today = new Date().toISOString().split('T')[0];
+  const today = toLocalDateString();
   const screen = context?.screen || '';
 
   // ── Screen-aware context hints ──
@@ -788,8 +796,12 @@ export function generateSmartCoachResponse(
   }
 
   if (lower.includes('bugün') || lower.includes('bugun') || lower.includes('ne yapmalıyım') || lower.includes('programım')) {
-    return plan?.weeklyWorkout[0]
-      ? `📋 **Bugünkü antrenman planın:**\n\n🏋️ **${plan.weeklyWorkout[0].focus}**\n\n${plan.weeklyWorkout[0].exercises.map((e, i) => `${i + 1}. ${e.name}\n   🎯 ${e.targetMuscle}\n   ${e.sets} set × ${e.reps}\n   Dinlenme: ${e.rest}\n   💡 ${e.formTip}`).join('\n\n')}\n\n⏱ Tahmini süre: ${plan.weeklyWorkout[0].estimatedTime} dakika\n\n${ctx ? `\n🍎 **Bugünkü beslenme:**\n• Kalori: ${ctx.todayCalories}/${ctx.targetCalories} kcal\n• Protein: ${ctx.todayProtein}/${ctx.targetProtein}g\n• Su: ${ctx.waterMl}/${ctx.waterGoal}ml\n\n${ctx.todayCalories === 0 ? '⚠️ Henüz beslenme eklemedin! Beslenme sayfasından yemeklerini kaydet.' : `📈 ${Math.round((ctx.todayCalories / ctx.targetCalories) * 100)}% tamamlandı`}` : ''}\n\n💧 Su: ${plan.dailyMealPlan.water}`
+    const todayWorkout = getTodayWorkout(plan);
+    if (plan && !todayWorkout) {
+      return `🛌 **Bugün dinlenme günün.**\n\nHaftalık programın:\n${plan.weeklyWorkout.map(w => `• ${w.dayName}: ${w.focus}`).join('\n')}`;
+    }
+    return todayWorkout
+      ? `📋 **Bugünkü antrenman planın:**\n\n🏋️ **${todayWorkout.focus}**\n\n${todayWorkout.exercises.map((e, i) => `${i + 1}. ${e.name}\n   🎯 ${e.targetMuscle}\n   ${e.sets} set × ${e.reps}\n   Dinlenme: ${e.rest}\n   💡 ${e.formTip}`).join('\n\n')}\n\n⏱ Tahmini süre: ${todayWorkout.estimatedTime} dakika\n\n${ctx ? `\n🍎 **Bugünkü beslenme:**\n• Kalori: ${ctx.todayCalories}/${ctx.targetCalories} kcal\n• Protein: ${ctx.todayProtein}/${ctx.targetProtein}g\n• Su: ${ctx.waterMl}/${ctx.waterGoal}ml\n\n${ctx.todayCalories === 0 ? '⚠️ Henüz beslenme eklemedin! Beslenme sayfasından yemeklerini kaydet.' : `📈 ${Math.round((ctx.todayCalories / ctx.targetCalories) * 100)}% tamamlandı`}` : ''}\n\n💧 Su: ${plan.dailyMealPlan.water}`
       : `Programın henüz oluşturulmamış. Onboarding'i tamamladıktan sonra sana özel program çıkacak.`;
   }
 
@@ -913,7 +925,7 @@ export function generateSmartCoachResponse(
           : '❌ Uyku süren çok kısa. Kas gelişimi ve toparlanma için 7-9 saat uyku gerekli.'}
 \n💡 **İyi Uyku için:**\n• Her gece aynı saatte uyu\n• Yatmadan 2 saat önce ekran kapat\n• Oda serin (18-20°C) ve karanlık olsun\n• Antrenman günleri daha iyi uyursun`;
     }
-    return `😴 **Uyku Rehberi:**\n\n🎯 Hedef: Her gece 7-9 saat uyku\n\n📊 **Neden önemli:**\n• Kas gelişimi uykuda gerçekleşir\n• HGH (Büyüme Hormonu) derin uykuda salınır\n• Yetersiz uyku抗anabolik etki yaratır\n• metabolizma hızı düşer\n\n💡 **İyi uyku için:**\n• Her gece aynı saatte uyu\n• Yatmadan 2 saat önce ekran mavi ışığını azalt\n• Oda serin (18-20°C) ve karanlık olsun\n• Ağır yemeği yatmadan 3 saat önce ye\n• Antrenman günleri daha iyi uyursun\n\n⚠️ Uyku takibini yapmak için uyku sayfasını kullan. Düzenli uyku, fitness hedeflerine ulaşmak için antrenman kadar önemli!`;
+    return `😴 **Uyku Rehberi:**\n\n🎯 Hedef: Her gece 7-9 saat uyku\n\n📊 **Neden önemli:**\n• Kas gelişimi uykuda gerçekleşir\n• HGH (Büyüme Hormonu) derin uykuda salınır\n• Yetersiz uyku antianabolik etki yaratır\n• metabolizma hızı düşer\n\n💡 **İyi uyku için:**\n• Her gece aynı saatte uyu\n• Yatmadan 2 saat önce ekran mavi ışığını azalt\n• Oda serin (18-20°C) ve karanlık olsun\n• Ağır yemeği yatmadan 3 saat önce ye\n• Antrenman günleri daha iyi uyursun\n\n⚠️ Uyku takibini yapmak için uyku sayfasını kullan. Düzenli uyku, fitness hedeflerine ulaşmak için antrenman kadar önemli!`;
   }
 
   // ── Kurtarma / Recovery yanıtları ──

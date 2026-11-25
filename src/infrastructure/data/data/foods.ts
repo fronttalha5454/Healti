@@ -80,7 +80,7 @@ export const FOODS: Food[] = [
   { id: 'piyaz', name: 'Bean Salad', nameTr: 'Piyaz', category: 'carb', per100g: { calories: 85, protein: 5, carbs: 12, fat: 2 }, commonPortions: [{ name: '1 porsiyon', grams: 200 }] },
   { id: 'gavur_dagi', name: 'Dried Tomato Salad', nameTr: 'Gavur Dağı Salatası', category: 'vegetable', per100g: { calories: 52, protein: 1.5, carbs: 5, fat: 3 }, commonPortions: [{ name: '1 porsiyon', grams: 120 }] },
 
-  //额外 Turkish dishes
+  // Extra Turkish dishes
   { id: 'menemen', name: 'Menemen', nameTr: 'Menemen', category: 'protein', per100g: { calories: 95, protein: 6, carbs: 5, fat: 6 }, commonPortions: [{ name: '1 porsiyon', grams: 300 }] },
   { id: 'gozleme', name: 'Gözleme', nameTr: 'Gözleme', category: 'carb', per100g: { calories: 230, protein: 8, carbs: 32, fat: 8 }, commonPortions: [{ name: '1 adet', grams: 200 }] },
   { id: 'zeytinyagli_yemek', name: 'Olive Oil Dish', nameTr: 'Zeytinyağlı Yemek', category: 'vegetable', per100g: { calories: 110, protein: 2, carbs: 8, fat: 8 }, commonPortions: [{ name: '1 porsiyon', grams: 200 }] },

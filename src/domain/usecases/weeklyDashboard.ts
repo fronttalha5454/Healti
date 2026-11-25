@@ -5,6 +5,7 @@
  * All data comes from actual stores — no fabricated values.
  */
 
+import { toLocalDateString } from '../../utils/date';
 import type {
   WorkoutPlan, WorkoutLog, FoodEntry, StepEntry,
   HabitLog, DailyHabit, WeeklyDayData,
@@ -52,7 +53,7 @@ export function generateWeeklyData(params: WeeklyDashboardParams): WeeklyDayData
   for (let i = 0; i < 7; i++) {
     const date = new Date(monday);
     date.setDate(date.getDate() + i);
-    const dateStr = date.toISOString().split('T')[0];
+    const dateStr = toLocalDateString(date);
     const dayNum = date.getDay();
 
     const isToday = dateStr === today;

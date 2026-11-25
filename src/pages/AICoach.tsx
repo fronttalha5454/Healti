@@ -1,3 +1,4 @@
+import { toLocalDateString } from '../utils/date';
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { useUserStore } from '../presentation/store/userStore';
 import { useNutritionStore } from '../presentation/store/nutritionStore';
@@ -8,7 +9,7 @@ import { useSleepStore } from '../presentation/store/sleepStore';
 import { useRecoveryStore } from '../presentation/store/recoveryStore';
 import { useHabitsStore } from '../presentation/store/habitsStore';
 import { Card } from '../presentation/components/ui/Card';
-import { generateSmartCoachResponse, generateCompletePlan, type NutritionContext } from '../domain/usecases/smartPlan';
+import { getTodayWorkout, generateSmartCoachResponse, generateCompletePlan, type NutritionContext } from '../domain/usecases/smartPlan';
 import { getExerciseById, EXERCISES, MUSCLE_GROUP_LABELS } from '../infrastructure/data/data/exercises';
 import { findSubstitution } from '../domain/usecases/exerciseSubstitution';
 import { getAIResponse, getAIServiceStatus } from '../domain/usecases/aiService';
@@ -46,7 +47,7 @@ export function AICoach() {
 
   const plan = useMemo(() => profile ? generateCompletePlan(profile) : null, [profile]);
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = toLocalDateString();
   const todayEntries = getEntriesForDate(today);
   const todayWorkoutDone = workoutLogs.some(l => l.date === today);
 
@@ -83,7 +84,7 @@ export function AICoach() {
     const weeklyRecoveryAvg = getRecoveryWeeklyAvg(7);
     
     // Today's workout session if available
-    const todayWorkoutSession = plan?.weeklyWorkout[0] || null;
+    const todayWorkoutSession = getTodayWorkout(plan);
     
     // Count completed workouts this week
     const weekAgo = new Date();
@@ -124,7 +125,7 @@ export function AICoach() {
   // Initialize with welcome message
   useEffect(() => {
     if (messages.length === 0) {
-      const todayWorkout = plan?.weeklyWorkout[0];
+      const todayWorkout = getTodayWorkout(plan);
       const calPercent = nutritionContext.targetCalories > 0
         ? Math.round((nutritionContext.todayCalories / nutritionContext.targetCalories) * 100)
         : 0;
@@ -132,7 +133,7 @@ export function AICoach() {
       setMessages([{
         id: '1',
         role: 'assistant',
-        content: `Merhaba! 👋 Ben senin AI fitness koçunum.\n\nSenin için özel bir program hazırladım. Bana şunları sorabilirsin:\n\n🏋️ **Antrenman:**\n• "Bugün ne yapacağımı söyle"\n• "Programım ne?"\n\n🍎 **Beslenme:**\n• "Ne yesem?" → Kişisel yemek önerileri\n• "Protein durumum?" → Günlük protein takibi\n• "Kalori özeti" → Detaylı beslenme raporu\n• "Ara öğün öner" → Meyve, kahve, kakao\n• "Takviye öner" → Supplement rehberi\n\n💬 **Diğer:**\n• "Kilo vermek istiyorum"\n• "Motivasyon ver"\n\n${todayWorkout ? `\n📋 Bugünkü antrenman: **${todayWorkout.focus}**\n${todayWorkout.exercises.length} egzersiz, ~${todayWorkout.estimatedTime} dk` : ''}\n\n${nutritionContext.todayCalories > 0 ? `\n📊 Bugün: ${nutritionContext.todayCalories} kcal / ${nutritionContext.targetCalories} kcal (${calPercent}%)` : '\n⚠️ Henüz beslenme eklemedin!'}`,
+        content: `Merhaba! 👋 Ben senin AI fitness koçunum.\n\nSenin için özel bir program hazırladım. Bana şunları sorabilirsin:\n\n🏋️ **Antrenman:**\n• "Bugün ne yapacağımı söyle"\n• "Programım ne?"\n\n🍎 **Beslenme:**\n• "Ne yesem?" → Kişisel yemek önerileri\n• "Protein durumum?" → Günlük protein takibi\n• "Kalori özeti" → Detaylı beslenme raporu\n• "Ara öğün öner" → Meyve, kahve, kakao\n• "Takviye öner" → Supplement rehberi\n\n💬 **Diğer:**\n• "Kilo vermek istiyorum"\n• "Motivasyon ver"\n\n${todayWorkout ? `\n📋 Bugünkü antrenman: **${todayWorkout.focus}**\n${todayWorkout.exercises.length} egzersiz, ~${todayWorkout.estimatedTime} dk` : '\n🛌 Bugün dinlenme günün.'}\n\n${nutritionContext.todayCalories > 0 ? `\n📊 Bugün: ${nutritionContext.todayCalories} kcal / ${nutritionContext.targetCalories} kcal (${calPercent}%)` : '\n⚠️ Henüz beslenme eklemedin!'}`,
         timestamp: new Date().toISOString(),
       }]);
     }
@@ -286,7 +287,7 @@ export function AICoach() {
   }, [screenFrom]);
 
   return (
-    <div className="min-h-[100dvh] bg-bg flex flex-col">
+    <div className="h-[100dvh] bg-bg flex flex-col">
       {/* Header */}
       <div className="safe-top glass border-b border-border-light sticky top-0 z-40">
         <div className="px-4 py-3 flex items-center gap-3">

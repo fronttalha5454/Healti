@@ -1,3 +1,4 @@
+import { toLocalDateString } from '../../utils/date';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { DailyHabit, HabitLog, StepEntry } from '../../types';
@@ -107,7 +108,7 @@ export const useHabitsStore = create<HabitsState>()(
             ...state.stepEntries,
             {
               id: `step_${Date.now()}`,
-              date: date || new Date().toISOString().split('T')[0],
+              date: date || toLocalDateString(),
               steps,
               timestamp: new Date().toISOString(),
             },

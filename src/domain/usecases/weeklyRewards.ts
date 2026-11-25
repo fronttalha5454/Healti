@@ -6,6 +6,7 @@
  * Uses badges, achievements, flexible meal suggestions, rest/recovery, and motivational milestones.
  */
 
+import { toLocalDateString } from '../../utils/date';
 import type { Badge, WeeklyReward, BadgeCategory, RewardType } from '../../types';
 import type { WorkoutLog, FoodEntry, Measurement, WeightLog } from '../../types';
 import type { DailyHabit, HabitLog } from '../../types';
@@ -87,7 +88,7 @@ export function calculateBadges(params: {
       case 'streak_30':
         current = currentStreak;
         if (current >= def.target) {
-          earnedAt = new Date().toISOString().split('T')[0]; // Approximate
+          earnedAt = toLocalDateString(); // Approximate
         }
         break;
 
@@ -108,7 +109,7 @@ export function calculateBadges(params: {
         ).size;
         current = daysWithProteinGoal;
         if (current >= def.target) {
-          earnedAt = new Date().toISOString().split('T')[0];
+          earnedAt = toLocalDateString();
         }
         break;
       }
@@ -117,7 +118,7 @@ export function calculateBadges(params: {
       case 'good_week':
         current = consistencyScore >= (def.id === 'perfect_week' ? 100 : 80) ? 1 : 0;
         if (current >= def.target) {
-          earnedAt = new Date().toISOString().split('T')[0];
+          earnedAt = toLocalDateString();
         }
         break;
 
@@ -139,7 +140,7 @@ export function calculateBadges(params: {
           const achieved = Math.abs(currentWeight - startWeight);
           current = Math.min(Math.round(achieved), def.target);
           if (achieved >= def.target) {
-            earnedAt = new Date().toISOString().split('T')[0];
+            earnedAt = toLocalDateString();
           }
         }
         break;
@@ -177,7 +178,7 @@ export function generateWeeklyRewards(params: {
   const rewards: WeeklyReward[] = [];
   const weekStart = new Date();
   weekStart.setDate(weekStart.getDate() - weekStart.getDay() + 1); // Monday
-  const weekStartStr = weekStart.toISOString().split('T')[0];
+  const weekStartStr = toLocalDateString(weekStart);
 
   // Badge rewards
   if (consistencyScore >= 80) {

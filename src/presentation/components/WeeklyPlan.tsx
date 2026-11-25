@@ -1,3 +1,4 @@
+import { toLocalDateString } from '../../utils/date';
 import { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useWeeklyPlanStore, DAY_NAMES, DAY_LABELS, type DayName, type WorkoutDayPlan, type MealDayPlan } from '../store/weeklyPlanStore';
@@ -57,13 +58,13 @@ export function WeeklyPlan() {
       <div className="flex gap-1.5 overflow-x-auto hide-scrollbar pb-1">
         {DAY_NAMES.map((day) => {
           const isSelected = day === selectedDay;
-          const today = new Date().toISOString().split('T')[0];
+          const today = toLocalDateString();
           const dayIndex = DAY_NAMES.indexOf(day);
           const jsDayIndex = dayIndex === 6 ? 0 : dayIndex + 1;
           const now = new Date();
           const dayDate = new Date(now);
           dayDate.setDate(now.getDate() - now.getDay() + jsDayIndex);
-          const isToday = dayDate.toISOString().split('T')[0] === today;
+          const isToday = toLocalDateString(dayDate) === today;
 
           return (
             <button
@@ -119,7 +120,7 @@ function WorkoutDayView({ day }: { day: DayName }) {
   const jsDayIndex = dayIndex === 6 ? 0 : dayIndex + 1;
   const dayDate = new Date(now);
   dayDate.setDate(now.getDate() - now.getDay() + jsDayIndex);
-  const dayDateStr = dayDate.toISOString().split('T')[0];
+  const dayDateStr = toLocalDateString(dayDate);
   const hasWorkedOut = workoutLogs.some((l) => l.date === dayDateStr);
 
   // Auto-create plan from active plan if none exists
@@ -334,7 +335,7 @@ function NutritionDayView({ day }: { day: DayName }) {
   const jsDayIndex = dayIndex === 6 ? 0 : dayIndex + 1;
   const dayDate = new Date(now);
   dayDate.setDate(now.getDate() - now.getDay() + jsDayIndex);
-  const dayDateStr = dayDate.toISOString().split('T')[0];
+  const dayDateStr = toLocalDateString(dayDate);
 
   // Get actual food entries for this day from nutritionStore
   const dayEntries = foodEntries.filter((e) => e.date === dayDateStr);

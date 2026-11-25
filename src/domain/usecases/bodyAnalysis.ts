@@ -94,9 +94,9 @@ export function generateBodyAnalysis(
     if (absChange < 0.1) {
       message = `${meta.label} ölçümün sabit kaldı.`;
     } else if ((meta.lowerIsBetter && change < 0) || (!meta.lowerIsBetter && change > 0)) {
-      message = `${meta.label} ölçümün ${absChange.toFixed(1)} ${meta.unit}改变了。Olumlu bir ilerleme var!`;
+      message = `${meta.label} ölçümün ${absChange.toFixed(1)} ${meta.unit} değişti. Olumlu bir ilerleme var!`;
     } else {
-      message = `${meta.label} ölçümün ${absChange.toFixed(1)} ${meta.unit}改变了. Takip etmeye devam et.`;
+      message = `${meta.label} ölçümün ${absChange.toFixed(1)} ${meta.unit} değişti. Takip etmeye devam et.`;
     }
 
     // Add timestamp context

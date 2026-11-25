@@ -1,3 +1,4 @@
+import { toLocalDateString } from '../../utils/date';
 import type { Food, FOODS } from '../../infrastructure/data/data/foods';
 import type { Profile, FoodEntry, MealType, NutritionPlan } from '../../types';
 import { calculateFoodCalories } from '../../infrastructure/data/data/foods';
@@ -425,7 +426,7 @@ export function generateMealSuggestions(
   // Get food entries for the last 7 days for preference analysis
   const weekAgo = new Date();
   weekAgo.setDate(weekAgo.getDate() - 7);
-  const weekAgoStr = weekAgo.toISOString().split('T')[0];
+  const weekAgoStr = toLocalDateString(weekAgo);
 
   const recentEntries = foodEntries.filter(e => e.date >= weekAgoStr);
 

@@ -1,3 +1,4 @@
+import { toLocalDateString } from '../../utils/date';
 import { useEffect, useRef, useCallback } from 'react';
 import { useNotificationStore } from '../store/notificationStore';
 import { useWaterStore } from '../store/waterStore';
@@ -19,7 +20,7 @@ import { registerToken, checkBackendHealth, evaluateAndSend } from '../../servic
 const CHECK_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 
 function getTodayString(): string {
-  return new Date().toISOString().split('T')[0];
+  return toLocalDateString();
 }
 
 function daysSince(dateStr: string | null): number {

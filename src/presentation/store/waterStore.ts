@@ -1,3 +1,4 @@
+import { toLocalDateString } from '../../utils/date';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
@@ -29,7 +30,7 @@ export const useWaterStore = create<WaterState>()(
             ...state.entries,
             {
               id: `water_${Date.now()}`,
-              date: new Date().toISOString().split('T')[0],
+              date: toLocalDateString(),
               amount,
               timestamp: new Date().toISOString(),
             },

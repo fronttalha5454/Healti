@@ -43,8 +43,9 @@ export function FloatingAIButton() {
   return (
     <button
       onClick={handleClick}
-      className="fixed bottom-20 right-4 z-50 flex items-center gap-2 pl-4 pr-5 py-3 rounded-full text-white font-semibold text-sm transition-all active:scale-95 shadow-xl"
+      className="fixed right-4 z-50 flex items-center gap-2 pl-4 pr-5 py-3 rounded-full text-white font-semibold text-sm transition-all active:scale-95 shadow-xl"
       style={{
+        bottom: 'calc(5rem + env(safe-area-inset-bottom, 0px))',
         background: 'linear-gradient(135deg, #3b82f6, #6366f1, #8b5cf6)',
         boxShadow: '0 6px 25px rgba(59,130,246,0.45)',
       }}

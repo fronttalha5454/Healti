@@ -264,7 +264,7 @@ function StepBody({ profile, update }: { profile: Partial<Profile>; update: (u: 
 
 function StepActivity({ profile, update }: { profile: Partial<Profile>; update: (u: Partial<Profile>) => void }) {
   const levels = [
-    { value: 'sedentary' as const, label: 'Sedanter', desc: 'Masa başı工作,很少 egzersiz', icon: '🪑' },
+    { value: 'sedentary' as const, label: 'Sedanter', desc: 'Masa başı iş, çok az egzersiz', icon: '🪑' },
     { value: 'light' as const, label: 'Hafif Aktif', desc: 'Haftada 1-2 gün hafif aktivite', icon: '🚶' },
     { value: 'moderate' as const, label: 'Orta Aktif', desc: 'Haftada 3-4 gün orta şiddette aktivite', icon: '🏃' },
     { value: 'very_active' as const, label: 'Çok Aktif', desc: 'Haftada 5+ gün yoğun aktivite', icon: '🏋️' },

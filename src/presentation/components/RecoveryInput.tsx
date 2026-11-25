@@ -1,3 +1,4 @@
+import { toLocalDateString } from '../../utils/date';
 import { useState, useMemo } from 'react';
 import { useRecoveryStore, getAdaptiveSuggestion } from '../store/recoveryStore';
 import { useNavigate } from 'react-router-dom';
@@ -20,7 +21,7 @@ interface RecoveryInputProps {
 export function RecoveryInput({ onComplete, compact = false }: RecoveryInputProps) {
   const navigate = useNavigate();
   const { addRecovery, hasEntryForDate, getRecoveryForDate, getWeeklyAverage, getRecoveryTrend } = useRecoveryStore();
-  const today = new Date().toISOString().split('T')[0];
+  const today = toLocalDateString();
   const todayEntry = getRecoveryForDate(today);
   const weeklyAvg = getWeeklyAverage(7);
   const trend = getRecoveryTrend(14);

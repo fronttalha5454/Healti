@@ -1,3 +1,4 @@
+import { toLocalDateString } from '../utils/date';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useNotificationStore } from '../presentation/store/notificationStore';
@@ -29,8 +30,8 @@ export function NotificationCenter() {
   );
 
   const groupedNotifications = useMemo(() => {
-    const today = new Date().toISOString().split('T')[0];
-    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+    const today = toLocalDateString();
+    const yesterday = toLocalDateString(new Date(Date.now() - 86400000));
 
     const groups: { label: string; items: NotificationRecord[] }[] = [];
     const todayItems: NotificationRecord[] = [];
@@ -244,7 +245,7 @@ function EmptyState({
 }) {
   return (
     <div className="text-center py-8">
-      <div className="mb-4">{icon}</div>
+      <div className="mb-4 flex justify-center">{icon}</div>
       <h3 className="text-lg font-semibold text-text mb-1">{title}</h3>
       <p className="text-sm text-text-muted mb-4">{description}</p>
       {actionLabel && onAction && (
