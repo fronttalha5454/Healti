@@ -1,15 +1,15 @@
 /**
- * AI Service Abstraction Layer
+ * AI Service — uygulamanın yapay zeka katmanı.
  *
- * This module provides a clean interface for AI capabilities.
- * Since this is a client-side only app with no backend, AI features
- * use local parsing and template-based responses.
+ * Uygulama Claude API'ye doğrudan bağlanmaz. Tüm istekler kendi sunucumuzdaki
+ * AI proxy'sine (server/src/aiProxy.ts) gider; API anahtarı yalnızca orada durur.
  *
- * IMPORTANT: No fake AI responses are generated. All responses clearly
- * indicate they come from the local analysis engine, not a real AI model.
+ * Yapılandırma (.env):
+ *   VITE_AI_API_URL        Proxy sunucusunun adresi, ör. https://healti-api.onrender.com
+ *   VITE_AI_CLIENT_TOKEN   (isteğe bağlı) Sunucudaki AI_CLIENT_TOKEN ile aynı değer
  *
- * If a backend API is configured in the future, this module should be
- * updated to call the real API with proper error handling.
+ * VITE_AI_API_URL tanımlı değilse veya sunucuya ulaşılamazsa uygulama yerel
+ * kural tabanlı motora (smartPlan / foodParser) geri düşer.
  */
 
 export type AIServiceStatus = 'available' | 'unavailable' | 'error';
@@ -19,6 +19,12 @@ export interface AIResponse {
   source: 'local' | 'api';
   confidence: number; // 0-100
   timestamp: string;
+  error?: string;
+}
+
+export interface AIChatTurn {
+  role: 'user' | 'assistant';
+  content: string;
 }
 
 export interface AIPhotoAnalysisResult {
@@ -34,98 +40,154 @@ export interface AIPhotoAnalysisResult {
     fat: number;
     confidence: number;
   }>;
+  note?: string;
   error?: string;
 }
 
 // ─── Service Configuration ───
 const AI_CONFIG = {
-  // Set to true when a backend API is configured
-  apiEnabled: false,
-  apiEndpoint: '', // e.g., 'https://api.example.com/ai'
-  apiKey: '', // Never expose in client-side code
-  timeoutMs: 10000,
+  apiEndpoint: ((import.meta.env.VITE_AI_API_URL as string | undefined) || '').replace(/\/+$/, ''),
+  clientToken: (import.meta.env.VITE_AI_CLIENT_TOKEN as string | undefined) || '',
+  chatTimeoutMs: 60_000,
+  photoTimeoutMs: 90_000,
 };
 
-// ─── Health Check ───
-export function getAIServiceStatus(): AIServiceStatus {
-  if (AI_CONFIG.apiEnabled && AI_CONFIG.apiEndpoint) {
-    return 'available';
-  }
-  return 'unavailable';
+function headers(): HeadersInit {
+  const h: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (AI_CONFIG.clientToken) h['X-App-Token'] = AI_CONFIG.clientToken;
+  return h;
 }
 
-// ─── Photo Analysis (requires external API) ───
-export async function analyzeFoodPhoto(
-  _imageData: string
-): Promise<AIPhotoAnalysisResult> {
-  const status = getAIServiceStatus();
+async function postJson<T>(path: string, body: unknown, timeoutMs: number): Promise<T> {
+  const response = await fetch(`${AI_CONFIG.apiEndpoint}/api/ai${path}`, {
+    method: 'POST',
+    headers: headers(),
+    body: JSON.stringify(body),
+    signal: AbortSignal.timeout(timeoutMs),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const message = (data as { message?: string }).message || `AI servisi hatası (${response.status})`;
+    throw new Error(message);
+  }
+  return data as T;
+}
 
-  if (status === 'unavailable') {
+// ─── Health Check ───
+
+/** Proxy adresi yapılandırılmış mı? (senkron, ağ isteği yapmaz) */
+export function getAIServiceStatus(): AIServiceStatus {
+  return AI_CONFIG.apiEndpoint ? 'available' : 'unavailable';
+}
+
+/** Sunucuya sorarak AI'nın gerçekten açık olup olmadığını kontrol eder. */
+export async function checkAIServiceStatus(): Promise<AIServiceStatus> {
+  if (!AI_CONFIG.apiEndpoint) return 'unavailable';
+  try {
+    const res = await fetch(`${AI_CONFIG.apiEndpoint}/api/ai/status`, { signal: AbortSignal.timeout(5000) });
+    if (!res.ok) return 'error';
+    const data = (await res.json()) as { configured?: boolean };
+    return data.configured ? 'available' : 'unavailable';
+  } catch {
+    return 'error';
+  }
+}
+
+// ─── Photo Analysis ───
+
+export async function analyzeFoodPhoto(imageDataUrl: string, hint?: string): Promise<AIPhotoAnalysisResult> {
+  if (getAIServiceStatus() === 'unavailable') {
     return {
       success: false,
       status: 'unavailable',
       foods: [],
       error:
-        'Fotoğraf analizi için bir yapay zeka servisi yapılandırılmamış. ' +
-        'Şu anda bu özellik kullanılamıyor. Manuel olarak yemek ekleyebilirsin.',
+        'Fotoğraf analizi için yapay zeka servisi yapılandırılmamış. Manuel olarak yemek ekleyebilirsin.',
     };
   }
 
-  // Future: Call real API here
-  // try {
-  //   const response = await fetch(`${AI_CONFIG.apiEndpoint}/analyze-food`, {
-  //     method: 'POST',
-  //     headers: { 'Authorization': `Bearer ${AI_CONFIG.apiKey}` },
-  //     body: JSON.stringify({ image: imageData }),
-  //     signal: AbortSignal.timeout(AI_CONFIG.timeoutMs),
-  //   });
-  //   if (!response.ok) throw new Error(`API error: ${response.status}`);
-  //   return await response.json();
-  // } catch (err) {
-  //   return { success: false, status: 'error', foods: [], error: String(err) };
-  // }
-
-  return {
-    success: false,
-    status: 'unavailable',
-    foods: [],
-    error: 'API yapılandırması bulunamadı.',
-  };
+  try {
+    const data = await postJson<{ success: boolean; foods: AIPhotoAnalysisResult['foods']; note?: string; message?: string }>(
+      '/food-photo',
+      { image: imageDataUrl, hint },
+      AI_CONFIG.photoTimeoutMs,
+    );
+    return { success: data.success, status: 'available', foods: data.foods || [], note: data.note };
+  } catch (err) {
+    return {
+      success: false,
+      status: 'error',
+      foods: [],
+      error: err instanceof Error && err.name !== 'TimeoutError' ? err.message : 'Fotoğraf analizi zaman aşımına uğradı.',
+    };
+  }
 }
 
 // ─── Natural Language AI Response ───
-export async function getAIResponse(
-  _prompt: string,
-  _context?: Record<string, unknown>
-): Promise<AIResponse> {
-  const status = getAIServiceStatus();
 
-  if (status === 'unavailable') {
-    // Return a clear "local analysis" response, never pretend it's AI
+/**
+ * AI Koç yanıtı. `history` son mesajı (kullanıcının sorusu) içermelidir.
+ * Hata olursa `source: 'local'` ve boş içerik döner; çağıran yerel motora düşmelidir.
+ */
+export async function getAIResponse(
+  history: AIChatTurn[],
+  context?: Record<string, unknown>,
+): Promise<AIResponse> {
+  const timestamp = new Date().toISOString();
+  if (getAIServiceStatus() === 'unavailable') {
+    return { content: '', source: 'local', confidence: 0, timestamp };
+  }
+
+  try {
+    const data = await postJson<{ content: string }>(
+      '/coach',
+      { messages: history, context },
+      AI_CONFIG.chatTimeoutMs,
+    );
+    return { content: data.content, source: 'api', confidence: 80, timestamp };
+  } catch (err) {
     return {
       content: '',
       source: 'local',
       confidence: 0,
-      timestamp: new Date().toISOString(),
+      timestamp,
+      error: err instanceof Error ? err.message : String(err),
     };
   }
-
-  // Future: Call real API here
-  return {
-    content: '',
-    source: 'api',
-    confidence: 0,
-    timestamp: new Date().toISOString(),
-  };
 }
 
 /**
  * Returns a disclaimer string that should be shown with all AI responses.
  */
 export function getAIDisclaimer(): string {
-  const status = getAIServiceStatus();
-  if (status === 'unavailable') {
+  if (getAIServiceStatus() === 'unavailable') {
     return 'Bu yanıtlar yerel analiz motoru tarafından üretilmiştir. Gerçek bir yapay zeka kullanılmamaktadır.';
   }
   return 'Bu yanıtlar yapay zeka tarafından üretilmiştir. Tıbbi tavsiye niteliği taşımaz.';
+}
+
+/**
+ * Bir görsel dosyasını küçültüp JPEG data URL'ye çevirir (yükleme boyutunu
+ * ve API maliyetini düşürür). Tarayıcı / Capacitor WebView içinde çalışır.
+ */
+export async function fileToResizedDataUrl(file: File, maxSide = 1280, quality = 0.85): Promise<string> {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const el = new Image();
+      el.onload = () => resolve(el);
+      el.onerror = () => reject(new Error('Görsel okunamadı'));
+      el.src = url;
+    });
+    const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(img.width * scale);
+    canvas.height = Math.round(img.height * scale);
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Canvas desteklenmiyor');
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL('image/jpeg', quality);
+  } finally {
+    URL.revokeObjectURL(url);
+  }
 }
