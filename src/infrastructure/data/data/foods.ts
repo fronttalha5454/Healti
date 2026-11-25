@@ -225,6 +225,72 @@ export const FOODS: Food[] = [
   { id: 'coffee_with_milk', name: 'Coffee with Milk', nameTr: 'Sütlü Kahve', category: 'beverage', per100g: { calories: 18, protein: 1, carbs: 2, fat: 0.6 }, commonPortions: [{ name: '1 bardak', grams: 200 }] },
 
   // ═══════════════════════════════════════
+  // KEBAP & IZGARA
+  // ═══════════════════════════════════════
+  { id: 'et_sis', name: 'Beef Shish', nameTr: 'Et Şiş', category: 'protein', per100g: { calories: 220, protein: 26, carbs: 1, fat: 12 }, commonPortions: [{ name: '1 porsiyon', grams: 200 }] },
+  { id: 'cop_sis', name: 'Çöp Şiş', nameTr: 'Çöp Şiş', category: 'protein', per100g: { calories: 240, protein: 24, carbs: 1, fat: 16 }, commonPortions: [{ name: '1 porsiyon', grams: 200 }] },
+  { id: 'izgara_kofte', name: 'Grilled Meatballs', nameTr: 'Izgara Köfte', category: 'protein', per100g: { calories: 250, protein: 19, carbs: 5, fat: 17 }, commonPortions: [{ name: '1 porsiyon', grams: 200 }] },
+  { id: 'tekirdag_kofte', name: 'Tekirdağ Meatballs', nameTr: 'Tekirdağ Köftesi', category: 'protein', per100g: { calories: 260, protein: 18, carbs: 6, fat: 18 }, commonPortions: [{ name: '1 porsiyon', grams: 200 }] },
+  { id: 'tavuk_pirzola', name: 'Chicken Chops', nameTr: 'Tavuk Pirzola', category: 'protein', per100g: { calories: 200, protein: 24, carbs: 0, fat: 11 }, commonPortions: [{ name: '1 porsiyon', grams: 200 }] },
+  { id: 'kuzu_pirzola', name: 'Lamb Chops', nameTr: 'Kuzu Pirzola', category: 'protein', per100g: { calories: 290, protein: 24, carbs: 0, fat: 21 }, commonPortions: [{ name: '1 porsiyon', grams: 180 }] },
+  { id: 'patlican_kebabi', name: 'Eggplant Kebab', nameTr: 'Patlıcan Kebabı', category: 'protein', per100g: { calories: 190, protein: 12, carbs: 6, fat: 13 }, commonPortions: [{ name: '1 porsiyon', grams: 300 }] },
+  { id: 'hamsi_tava', name: 'Fried Anchovies', nameTr: 'Hamsi Tava', category: 'protein', per100g: { calories: 250, protein: 18, carbs: 10, fat: 15 }, commonPortions: [{ name: '1 porsiyon', grams: 200 }] },
+  { id: 'etli_kuru_fasulye', name: 'White Beans with Meat', nameTr: 'Etli Kuru Fasulye', category: 'protein', per100g: { calories: 130, protein: 8, carbs: 14, fat: 4.5 }, commonPortions: [{ name: '1 porsiyon', grams: 300 }] },
+  { id: 'etli_nohut', name: 'Chickpeas with Meat', nameTr: 'Etli Nohut', category: 'protein', per100g: { calories: 140, protein: 8, carbs: 16, fat: 5 }, commonPortions: [{ name: '1 porsiyon', grams: 300 }] },
+  { id: 'adana_kebab_durum', name: 'Adana Kebab Wrap', nameTr: 'Adana Kebap Dürüm', category: 'carb', per100g: { calories: 260, protein: 13, carbs: 24, fat: 13 }, commonPortions: [{ name: '1 dürüm', grams: 300 }] },
+  { id: 'urfa_kebab_durum', name: 'Urfa Kebab Wrap', nameTr: 'Urfa Kebap Dürüm', category: 'carb', per100g: { calories: 250, protein: 13, carbs: 24, fat: 12 }, commonPortions: [{ name: '1 dürüm', grams: 300 }] },
+  { id: 'et_doner_durum', name: 'Beef Döner Wrap', nameTr: 'Et Döner Dürüm', category: 'carb', per100g: { calories: 240, protein: 14, carbs: 23, fat: 10 }, commonPortions: [{ name: '1 dürüm', grams: 300 }] },
+  { id: 'tavuk_doner_durum', name: 'Chicken Döner Wrap', nameTr: 'Tavuk Döner Dürüm', category: 'carb', per100g: { calories: 215, protein: 15, carbs: 23, fat: 7 }, commonPortions: [{ name: '1 dürüm', grams: 300 }] },
+
+  // ═══════════════════════════════════════
+  // DÜNYA MUTFAĞI
+  // ═══════════════════════════════════════
+  { id: 'pizza_margherita', name: 'Margherita Pizza', nameTr: 'Margarita Pizza', category: 'carb', per100g: { calories: 250, protein: 11, carbs: 31, fat: 9 }, commonPortions: [{ name: '2 dilim', grams: 220 }] },
+  { id: 'pizza_karisik', name: 'Mixed Pizza', nameTr: 'Karışık Pizza', category: 'carb', per100g: { calories: 270, protein: 12, carbs: 30, fat: 11 }, commonPortions: [{ name: '2 dilim', grams: 230 }] },
+  { id: 'hamburger', name: 'Hamburger', nameTr: 'Hamburger', category: 'protein', per100g: { calories: 250, protein: 13, carbs: 25, fat: 11 }, commonPortions: [{ name: '1 adet', grams: 220 }] },
+  { id: 'cheeseburger', name: 'Cheeseburger', nameTr: 'Cheeseburger', category: 'protein', per100g: { calories: 270, protein: 14, carbs: 24, fat: 13 }, commonPortions: [{ name: '1 adet', grams: 240 }] },
+  { id: 'hot_dog', name: 'Hot Dog', nameTr: 'Sosisli Sandviç', category: 'carb', per100g: { calories: 260, protein: 10, carbs: 22, fat: 15 }, commonPortions: [{ name: '1 adet', grams: 150 }] },
+  { id: 'california_roll', name: 'California Roll', nameTr: 'California Roll', category: 'carb', per100g: { calories: 150, protein: 4, carbs: 24, fat: 4 }, commonPortions: [{ name: '8 parça', grams: 220 }] },
+  { id: 'salmon_roll', name: 'Salmon Roll', nameTr: 'Somonlu Roll', category: 'carb', per100g: { calories: 170, protein: 7, carbs: 24, fat: 5 }, commonPortions: [{ name: '8 parça', grams: 220 }] },
+  { id: 'tavuklu_noodle', name: 'Chicken Noodles', nameTr: 'Tavuklu Noodle', category: 'carb', per100g: { calories: 150, protein: 9, carbs: 20, fat: 4 }, commonPortions: [{ name: '1 porsiyon', grams: 300 }] },
+  { id: 'taco', name: 'Taco', nameTr: 'Taco', category: 'carb', per100g: { calories: 220, protein: 10, carbs: 20, fat: 11 }, commonPortions: [{ name: '2 adet', grams: 170 }] },
+  { id: 'burrito', name: 'Burrito', nameTr: 'Burrito', category: 'carb', per100g: { calories: 200, protein: 9, carbs: 25, fat: 7 }, commonPortions: [{ name: '1 adet', grams: 300 }] },
+  { id: 'falafel', name: 'Falafel', nameTr: 'Falafel', category: 'protein', per100g: { calories: 333, protein: 13, carbs: 32, fat: 18 }, commonPortions: [{ name: '5 adet', grams: 100 }] },
+
+  // ═══════════════════════════════════════
+  // FIRIN & KAHVALTILIK
+  // ═══════════════════════════════════════
+  { id: 'acma', name: 'Açma', nameTr: 'Açma', category: 'carb', per100g: { calories: 360, protein: 8, carbs: 45, fat: 16 }, commonPortions: [{ name: '1 adet', grams: 90 }] },
+  { id: 'boyoz', name: 'Boyoz', nameTr: 'Boyoz', category: 'carb', per100g: { calories: 400, protein: 7, carbs: 40, fat: 24 }, commonPortions: [{ name: '1 adet', grams: 80 }] },
+  { id: 'kasarli_tost', name: 'Cheese Toast', nameTr: 'Kaşarlı Tost', category: 'carb', per100g: { calories: 290, protein: 13, carbs: 30, fat: 13 }, commonPortions: [{ name: '1 adet', grams: 150 }] },
+  { id: 'su_boregi', name: 'Su Böreği', nameTr: 'Su Böreği', category: 'carb', per100g: { calories: 260, protein: 9, carbs: 25, fat: 14 }, commonPortions: [{ name: '1 dilim', grams: 150 }] },
+
+  // ═══════════════════════════════════════
+  // TATLILAR
+  // ═══════════════════════════════════════
+  { id: 'fistikli_baklava', name: 'Pistachio Baklava', nameTr: 'Fıstıklı Baklava', category: 'snack', per100g: { calories: 430, protein: 7, carbs: 48, fat: 24 }, commonPortions: [{ name: '2 dilim', grams: 80 }] },
+  { id: 'cevizli_baklava', name: 'Walnut Baklava', nameTr: 'Cevizli Baklava', category: 'snack', per100g: { calories: 430, protein: 6, carbs: 50, fat: 23 }, commonPortions: [{ name: '2 dilim', grams: 80 }] },
+  { id: 'sutlac', name: 'Rice Pudding', nameTr: 'Sütlaç', category: 'snack', per100g: { calories: 120, protein: 3.5, carbs: 20, fat: 3 }, commonPortions: [{ name: '1 kase', grams: 200 }] },
+  { id: 'kazandibi', name: 'Kazandibi', nameTr: 'Kazandibi', category: 'snack', per100g: { calories: 160, protein: 4, carbs: 26, fat: 4.5 }, commonPortions: [{ name: '1 dilim', grams: 150 }] },
+  { id: 'kunefe', name: 'Künefe', nameTr: 'Künefe', category: 'snack', per100g: { calories: 350, protein: 7, carbs: 40, fat: 18 }, commonPortions: [{ name: '1 porsiyon', grams: 150 }] },
+  { id: 'cikolatali_pasta', name: 'Chocolate Cake', nameTr: 'Çikolatalı Pasta', category: 'snack', per100g: { calories: 370, protein: 5, carbs: 50, fat: 17 }, commonPortions: [{ name: '1 dilim', grams: 120 }] },
+  { id: 'cheesecake', name: 'Cheesecake', nameTr: 'Cheesecake', category: 'snack', per100g: { calories: 320, protein: 6, carbs: 26, fat: 22 }, commonPortions: [{ name: '1 dilim', grams: 120 }] },
+  { id: 'profiterol', name: 'Profiterole', nameTr: 'Profiterol', category: 'snack', per100g: { calories: 300, protein: 5, carbs: 30, fat: 18 }, commonPortions: [{ name: '1 porsiyon', grams: 150 }] },
+  { id: 'trilece', name: 'Tres Leches', nameTr: 'Trileçe', category: 'snack', per100g: { calories: 220, protein: 5, carbs: 32, fat: 8 }, commonPortions: [{ name: '1 dilim', grams: 150 }] },
+  { id: 'irmik_helvasi', name: 'Semolina Halva', nameTr: 'İrmik Helvası', category: 'snack', per100g: { calories: 330, protein: 5, carbs: 50, fat: 12 }, commonPortions: [{ name: '1 porsiyon', grams: 100 }] },
+  { id: 'revani', name: 'Revani', nameTr: 'Revani', category: 'snack', per100g: { calories: 300, protein: 4, carbs: 55, fat: 7 }, commonPortions: [{ name: '1 dilim', grams: 100 }] },
+
+  // ═══════════════════════════════════════
+  // GELENEKSEL YEMEKLER
+  // ═══════════════════════════════════════
+  { id: 'yogurtlu_manti', name: 'Mantı with Yogurt', nameTr: 'Yoğurtlu Mantı', category: 'carb', per100g: { calories: 180, protein: 8, carbs: 22, fat: 7 }, commonPortions: [{ name: '1 porsiyon', grams: 300 }] },
+  { id: 'etli_dolma', name: 'Stuffed Vegetables with Meat', nameTr: 'Etli Dolma', category: 'carb', per100g: { calories: 160, protein: 7, carbs: 18, fat: 7 }, commonPortions: [{ name: '1 porsiyon', grams: 250 }] },
+  { id: 'biber_dolmasi', name: 'Stuffed Peppers', nameTr: 'Biber Dolması', category: 'carb', per100g: { calories: 150, protein: 6, carbs: 18, fat: 6 }, commonPortions: [{ name: '3 adet', grams: 250 }] },
+  { id: 'kisir', name: 'Kısır', nameTr: 'Kısır', category: 'carb', per100g: { calories: 160, protein: 3.5, carbs: 25, fat: 5.5 }, commonPortions: [{ name: '1 porsiyon', grams: 150 }] },
+  { id: 'mercimek_kofte', name: 'Lentil Patties', nameTr: 'Mercimek Köftesi', category: 'carb', per100g: { calories: 170, protein: 6, carbs: 28, fat: 4 }, commonPortions: [{ name: '5 adet', grams: 150 }] },
+  { id: 'kasarli_pide', name: 'Cheese Pide', nameTr: 'Kaşarlı Pide', category: 'carb', per100g: { calories: 270, protein: 12, carbs: 30, fat: 11 }, commonPortions: [{ name: '1 pide', grams: 280 }] },
+
+  // ═══════════════════════════════════════
   // İÇECEKLER
   // ═══════════════════════════════════════
   { id: 'water', name: 'Water', nameTr: 'Su', category: 'beverage', per100g: { calories: 0, protein: 0, carbs: 0, fat: 0 }, commonPortions: [{ name: '1 bardak', grams: 250 }, { name: '1 şişe', grams: 500 }] },
@@ -317,3 +383,211 @@ export const FOOD_CATEGORIES = [
   { id: 'snack', label: 'Atıştırmalık', emoji: '🍫' },
   { id: 'beverage', label: 'İçecek', emoji: '💧' },
 ] as const;
+
+// ─── Öğün Uygunluğu ───
+// 0 = uygun değil / bilinmiyor, 1 = olabilir, 2 = uygun, 3 = çok uygun
+
+export type MealRelevanceType =
+  | 'breakfast'
+  | 'morning_snack'
+  | 'lunch'
+  | 'afternoon_snack'
+  | 'dinner'
+  | 'evening_snack';
+
+type RelevanceScore = 0 | 1 | 2 | 3;
+type RelevanceRow = Partial<Record<MealRelevanceType, RelevanceScore>>;
+
+const MAIN_MEAL: RelevanceRow = { lunch: 3, dinner: 3 };
+const DURUM: RelevanceRow = { lunch: 2, dinner: 2 };
+const WORLD_FOOD: RelevanceRow = { lunch: 2, dinner: 2 };
+const BAKERY: RelevanceRow = { breakfast: 2, morning_snack: 1, afternoon_snack: 1 };
+const DESSERT: RelevanceRow = { afternoon_snack: 1, evening_snack: 1 };
+const TRADITIONAL: RelevanceRow = { lunch: 2, dinner: 2 };
+
+const MEAL_RELEVANCE: Record<string, RelevanceRow> = {
+  // Kahvaltılık
+  egg: { breakfast: 3, evening_snack: 2 },
+  cheese: { breakfast: 3, morning_snack: 1, evening_snack: 1 },
+  kashkaval: { breakfast: 3, morning_snack: 1 },
+  string_cheese: { breakfast: 2, morning_snack: 2, afternoon_snack: 2 },
+  menemen: { breakfast: 3 },
+  simit: { breakfast: 2, morning_snack: 2, afternoon_snack: 1 },
+  'poğaça': { breakfast: 2, morning_snack: 1, afternoon_snack: 1 },
+  'börek': { breakfast: 2, afternoon_snack: 1 },
+  gozleme: { breakfast: 2, lunch: 1 },
+  bread: { breakfast: 2, lunch: 1, dinner: 1 },
+  whole_wheat_bread: { breakfast: 2, lunch: 1, dinner: 1 },
+  oats: { breakfast: 3, morning_snack: 1 },
+  granola: { breakfast: 2, morning_snack: 1 },
+  'müsli': { breakfast: 1, afternoon_snack: 1 },
+  honey: { breakfast: 2 },
+  butter: { breakfast: 2 },
+  peanut_butter: { breakfast: 2, morning_snack: 1, afternoon_snack: 1 },
+  tomato: { breakfast: 2, lunch: 1, dinner: 1 },
+  cucumber: { breakfast: 2, lunch: 1, dinner: 1 },
+  milk: { breakfast: 2, evening_snack: 2 },
+  tea: { breakfast: 2, afternoon_snack: 1 },
+  turkish_coffee: { morning_snack: 1, afternoon_snack: 1 },
+
+  // Süt ürünleri
+  greek_yogurt: { breakfast: 2, morning_snack: 3, afternoon_snack: 2, evening_snack: 3 },
+  cottage_cheese: { breakfast: 2, morning_snack: 2, evening_snack: 3 },
+  ayran: { lunch: 2, dinner: 1 },
+  kefir: { morning_snack: 2, evening_snack: 2 },
+  yogurt_with_granola: { breakfast: 2, morning_snack: 2 },
+
+  // Meyve & atıştırmalık
+  banana: { breakfast: 1, morning_snack: 3, afternoon_snack: 2 },
+  apple: { morning_snack: 3, afternoon_snack: 2 },
+  orange: { morning_snack: 2, afternoon_snack: 2 },
+  strawberry: { breakfast: 1, morning_snack: 2, afternoon_snack: 2 },
+  blueberry: { breakfast: 1, morning_snack: 2, afternoon_snack: 2 },
+  almonds: { morning_snack: 2, afternoon_snack: 3 },
+  walnut: { breakfast: 1, morning_snack: 2, afternoon_snack: 2 },
+  hazelnut: { morning_snack: 2, afternoon_snack: 2 },
+  protein_bar: { morning_snack: 2, afternoon_snack: 2 },
+  rice_cake: { morning_snack: 1, afternoon_snack: 2 },
+  dark_chocolate: { afternoon_snack: 1 },
+  whey_protein: { morning_snack: 1, afternoon_snack: 2 },
+  protein_shake: { morning_snack: 1, afternoon_snack: 2 },
+
+  // Ana yemek proteinleri
+  chicken_breast: MAIN_MEAL,
+  chicken_thigh: MAIN_MEAL,
+  fish: MAIN_MEAL,
+  salmon: MAIN_MEAL,
+  beef: MAIN_MEAL,
+  beef_lean: MAIN_MEAL,
+  lamb: { lunch: 2, dinner: 3 },
+  shrimp: { lunch: 2, dinner: 2 },
+  tuna: { lunch: 2, dinner: 1, afternoon_snack: 1 },
+  kofte: MAIN_MEAL,
+  tavuk_sis: MAIN_MEAL,
+  adana_kebab: MAIN_MEAL,
+  urfa_kebab: MAIN_MEAL,
+  iskender: { lunch: 3, dinner: 2 },
+  doner: { lunch: 2, dinner: 2 },
+  tavuk_doner: { lunch: 2, dinner: 2 },
+  tavuk_sote: MAIN_MEAL,
+  izmir_kofte: MAIN_MEAL,
+  kuru_fasulye: { lunch: 3, dinner: 2 },
+  nohut: { lunch: 3, dinner: 2 },
+
+  // Kebap & ızgara (yeni)
+  et_sis: MAIN_MEAL,
+  cop_sis: MAIN_MEAL,
+  izgara_kofte: MAIN_MEAL,
+  tekirdag_kofte: MAIN_MEAL,
+  tavuk_pirzola: MAIN_MEAL,
+  kuzu_pirzola: MAIN_MEAL,
+  patlican_kebabi: MAIN_MEAL,
+  hamsi_tava: MAIN_MEAL,
+  etli_kuru_fasulye: MAIN_MEAL,
+  etli_nohut: MAIN_MEAL,
+  adana_kebab_durum: DURUM,
+  urfa_kebab_durum: DURUM,
+  et_doner_durum: DURUM,
+  tavuk_doner_durum: DURUM,
+
+  // Dünya mutfağı
+  pizza_margherita: WORLD_FOOD,
+  pizza_karisik: WORLD_FOOD,
+  hamburger: WORLD_FOOD,
+  cheeseburger: WORLD_FOOD,
+  hot_dog: WORLD_FOOD,
+  california_roll: WORLD_FOOD,
+  salmon_roll: WORLD_FOOD,
+  tavuklu_noodle: WORLD_FOOD,
+  taco: WORLD_FOOD,
+  burrito: WORLD_FOOD,
+  falafel: WORLD_FOOD,
+
+  // Fırın
+  acma: BAKERY,
+  boyoz: BAKERY,
+  kasarli_tost: BAKERY,
+  su_boregi: BAKERY,
+
+  // Tatlılar
+  fistikli_baklava: DESSERT,
+  cevizli_baklava: DESSERT,
+  sutlac: DESSERT,
+  kazandibi: DESSERT,
+  kunefe: DESSERT,
+  cikolatali_pasta: DESSERT,
+  cheesecake: DESSERT,
+  profiterol: DESSERT,
+  trilece: DESSERT,
+  irmik_helvasi: DESSERT,
+  revani: DESSERT,
+
+  // Geleneksel yemekler
+  yogurtlu_manti: TRADITIONAL,
+  'mantı': TRADITIONAL,
+  etli_dolma: TRADITIONAL,
+  biber_dolmasi: TRADITIONAL,
+  kisir: { lunch: 2, afternoon_snack: 1 },
+  mercimek_kofte: { lunch: 2, afternoon_snack: 1 },
+  kasarli_pide: TRADITIONAL,
+  pide: TRADITIONAL,
+  lahmacun: TRADITIONAL,
+  imam_bayildi: TRADITIONAL,
+  'karnıyarık': TRADITIONAL,
+  turlu: TRADITIONAL,
+  zeytinyagli_yemek: TRADITIONAL,
+
+  // Çorbalar
+  lentil_soup: { lunch: 2, dinner: 2 },
+  ezogelin: { lunch: 2, dinner: 2 },
+  yayla_soup: { lunch: 2, dinner: 2 },
+  tomato_soup: { lunch: 2, dinner: 2 },
+  tarhana_soup: { lunch: 2, dinner: 2 },
+
+  // Karbonhidrat & garnitür
+  rice: { lunch: 2, dinner: 2 },
+  brown_rice: { lunch: 2, dinner: 2 },
+  bulgur_pilavi: { lunch: 2, dinner: 2 },
+  bulgur: { lunch: 2, dinner: 2 },
+  pilav: { lunch: 2, dinner: 2 },
+  pasta: { lunch: 2, dinner: 2 },
+  quinoa: { lunch: 2, dinner: 2 },
+  potato: { lunch: 2, dinner: 2 },
+  sweet_potato: { lunch: 2, dinner: 2 },
+
+  // Sebze & salata
+  broccoli: { lunch: 1, dinner: 2 },
+  spinach: { lunch: 1, dinner: 2 },
+  lettuce: { lunch: 1, dinner: 1 },
+  cobb_salad: { lunch: 2, dinner: 1 },
+  piyaz: { lunch: 1, dinner: 1 },
+  gavur_dagi: { lunch: 1, dinner: 1 },
+  ezme: { lunch: 1, dinner: 1 },
+};
+
+/** Bir besinin belirli bir öğüne ne kadar uygun olduğunu 0-3 arası döndürür. */
+export function getMealRelevance(foodId: string, mealType: string): number {
+  const row = MEAL_RELEVANCE[foodId];
+  if (!row) return 0;
+  return row[mealType as MealRelevanceType] ?? 0;
+}
+
+/** Besinleri öğün uygunluğuna göre sıralar (eşit skorlarda orijinal sıra korunur). */
+export function sortFoodsByMealRelevance<T extends Pick<Food, 'id'>>(foods: T[], mealType: string): T[] {
+  return foods
+    .map((food, index) => ({ food, index, score: getMealRelevance(food.id, mealType) }))
+    .sort((a, b) => b.score - a.score || a.index - b.index)
+    .map((entry) => entry.food);
+}
+
+/**
+ * Öğüne göre sıralanmış besin listesi. Arama metni verilirse önce arama yapılır,
+ * kategori verilirse yalnızca o kategori döner. Skoru 0 olanlar listenin sonunda yer alır.
+ */
+export function getMealRelevantFoods(mealType: string, category?: string, search?: string): Food[] {
+  let foods: Food[] = search && search.trim() ? searchFoods(search.trim()) : FOODS;
+  if (category) {
+    foods = foods.filter((f) => f.category === category);
+  }
+  return sortFoodsByMealRelevance(foods, mealType);
+}

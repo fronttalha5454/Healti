@@ -265,9 +265,9 @@ export function Dashboard() {
 
     // Steps insight
     if (todaySteps > 0 && todaySteps < stepGoal * 0.5) {
-      insights.push({ icon: '👟', text: `Bugün ${todaySteps.toLocaleString()} adım attın — ${stepGoal.toLocaleString()} hedefinin yarısında.`, type: 'info' });
+      insights.push({ icon: '👟', text: `Bugün ${todaySteps.toLocaleString('tr-TR')} adım attın — ${stepGoal.toLocaleString('tr-TR')} hedefinin yarısında.`, type: 'info' });
     } else if (todaySteps >= stepGoal) {
-      insights.push({ icon: '👟', text: `Günlük adım hedefine ulaştın! (${todaySteps.toLocaleString()})`, type: 'success' });
+      insights.push({ icon: '👟', text: `Günlük adım hedefine ulaştın! (${todaySteps.toLocaleString('tr-TR')})`, type: 'success' });
     }
 
     // Measurement comparison (if available)
@@ -700,9 +700,9 @@ export function Dashboard() {
             <Footprints size={18} className="text-orange-400 mx-auto mb-1" />
             <p className="text-[10px] text-text-muted">Adım</p>
             <p className="text-sm font-bold text-text">
-              {todaySteps > 0 ? todaySteps.toLocaleString() : '--'}
+              {todaySteps > 0 ? todaySteps.toLocaleString('tr-TR') : '--'}
             </p>
-            <p className="text-[10px] text-text-muted">/ {stepGoal.toLocaleString()}</p>
+            <p className="text-[10px] text-text-muted">/ {stepGoal.toLocaleString('tr-TR')}</p>
           </Card>
         </div>
 
