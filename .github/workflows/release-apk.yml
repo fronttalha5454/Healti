@@ -1,0 +1,63 @@
+name: Release APK
+
+# Builds a debug APK from master and publishes it as a GitHub prerelease,
+# so the latest build can always be downloaded from the Releases page.
+on:
+  push:
+    branches: [master, main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-apk
+  cancel-in-progress: false
+
+jobs:
+  release-apk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'gradle'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build web app
+        run: npm run build
+
+      - name: Sync Capacitor Android project
+        run: npx cap sync android
+
+      - name: Build debug APK
+        run: |
+          cd android
+          ./gradlew assembleDebug -Dorg.gradle.jvmargs="-Xmx2048m"
+
+      - name: Publish prerelease
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          SHORT_SHA="${GITHUB_SHA::7}"
+          TAG="apk-${GITHUB_RUN_NUMBER}-${SHORT_SHA}"
+          APK="healti-${GITHUB_RUN_NUMBER}-${SHORT_SHA}-debug.apk"
+          cp android/app/build/outputs/apk/debug/app-debug.apk "$APK"
+          gh release create "$TAG" "$APK" \
+            --target "$GITHUB_SHA" \
+            --prerelease \
+            --title "Healti APK #${GITHUB_RUN_NUMBER} (${SHORT_SHA})" \
+            --notes "Debug APK built automatically from ${SHORT_SHA} on ${GITHUB_REF_NAME}. Install on Android by allowing installs from unknown sources."
