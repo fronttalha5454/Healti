@@ -116,11 +116,11 @@ export function selectWorkoutProgram(profile: Profile): WorkoutPlan {
 
 function getProgramName(type: WorkoutPlan['type']): string {
   switch (type) {
-    case 'full_body': return 'Full Body Program';
-    case 'upper_lower': return 'Upper/Lower Split';
-    case 'push_pull_legs': return 'Push/Pull/Legs';
-    case 'hybrid': return 'Hybrid Program';
-    case 'custom': return 'Custom Program';
+    case 'full_body': return 'Tüm Vücut Programı';
+    case 'upper_lower': return 'Üst/Alt Bölünmüş Program';
+    case 'push_pull_legs': return 'İtiş/Çekiş/Bacak Programı';
+    case 'hybrid': return 'Karma Program';
+    case 'custom': return 'Özel Program';
   }
 }
 
@@ -227,12 +227,12 @@ function generateFullBody(
 
     sessions.push({
       id: `session_${i}`,
-      name: `Full Body - Gün ${i + 1}`,
+      name: `Tüm Vücut - Gün ${i + 1}`,
       day: selectedDays[i],
       exercises,
       estimatedDuration: exercises.length * 12,
-      warmup: ['5 dk hafif kardiyo', 'Dynamic stretching'],
-      cooldown: ['Static stretching', 'Foam roller (isteğe bağlı)'],
+      warmup: ['5 dk hafif yürüyüş', 'Eklem mobilitesi'],
+      cooldown: ['Esneme hareketleri', 'Foam roller (isteğe bağlı)'],
     });
   }
 
@@ -289,12 +289,12 @@ function generateUpperLower(
 
     sessions.push({
       id: `session_${i}`,
-      name: isUpper ? 'Upper Body' : 'Lower Body',
+      name: isUpper ? 'Göğüs + Sırt + Omuz + Kol' : 'Bacak + Kalça',
       day: selectedDays[i],
       exercises,
       estimatedDuration: exercises.length * 12,
-      warmup: ['5 dk hafif kardiyo', 'Dynamic stretching'],
-      cooldown: ['Static stretching'],
+      warmup: ['5 dk hafif yürüyüş', 'Eklem mobilitesi'],
+      cooldown: ['Esneme hareketleri'],
     });
   }
 
@@ -342,12 +342,12 @@ function generatePPL(
 
     sessions.push({
       id: `session_${i}`,
-      name: isPush ? 'Push Day' : isPull ? 'Pull Day' : 'Leg Day',
+      name: isPush ? 'Göğüs + Omuz + Arka Kol' : isPull ? 'Sırt + Ön Kol' : 'Bacak + Kalça',
       day: selectedDays[i],
       exercises,
       estimatedDuration: exercises.length * 13,
-      warmup: ['5 dk hafif kardiyo', 'Dynamic stretching'],
-      cooldown: ['Static stretching'],
+      warmup: ['5 dk hafif yürüyüş', 'Eklem mobilitesi'],
+      cooldown: ['Esneme hareketleri'],
     });
   }
 
@@ -393,12 +393,12 @@ function generateHybrid(
 
     sessions.push({
       id: `session_${i}`,
-      name: isUpper ? 'Upper Body' : 'Lower Body',
+      name: isUpper ? 'Göğüs + Sırt + Omuz' : 'Bacak + Kalça',
       day: selectedDays[i],
       exercises,
       estimatedDuration: exercises.length * 13,
-      warmup: ['5 dk hafif kardiyo', 'Dynamic stretching'],
-      cooldown: ['Static stretching'],
+      warmup: ['5 dk hafif yürüyüş', 'Eklem mobilitesi'],
+      cooldown: ['Esneme hareketleri'],
     });
   }
 

@@ -612,7 +612,10 @@ export interface NotificationRecord {
   dismissed: boolean;
   createdAt: string;
   navigationPath: string;
+  status?: NotificationStatus;
 }
+
+export type NotificationStatus = 'scheduled' | 'delivered' | 'opened' | 'failed';
 
 // ─── Notification Channel Configuration (Android) ───
 

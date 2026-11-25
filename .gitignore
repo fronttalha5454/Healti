@@ -12,6 +12,17 @@ dist
 dist-ssr
 *.local
 
+# Environment files (contain secrets) - keep .env.example tracked
+.env
+.env.*
+!.env.example
+server/.env
+
+# Android signing (never commit keystores or their passwords)
+*.jks
+*.keystore
+android/keystore.properties
+
 # Firebase config (contains secrets)
 server/service-account.json
 android/app/google-services.json
