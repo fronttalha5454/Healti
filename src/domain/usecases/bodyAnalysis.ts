@@ -6,8 +6,8 @@
  * Estimates are clearly labeled as estimates.
  */
 
-import type { Measurement, WeightLog, BodyAnalysisInsight, BodyAnalysisTrend } from '../types';
-import type { WorkoutLog } from '../types';
+import type { Measurement, WeightLog, BodyAnalysisInsight, BodyAnalysisTrend } from '../../types';
+import type { WorkoutLog } from '../../types';
 
 // ─── Field Metadata ───
 const FIELD_META: Record<string, { label: string; unit: string; lowerIsBetter: boolean }> = {

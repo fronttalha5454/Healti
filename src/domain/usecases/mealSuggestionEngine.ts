@@ -1,6 +1,6 @@
-import type { Food, FOODS } from '../data/foods';
-import type { Profile, FoodEntry, MealType, NutritionPlan } from '../types';
-import { calculateFoodCalories } from '../data/foods';
+import type { Food, FOODS } from '../../infrastructure/data/data/foods';
+import type { Profile, FoodEntry, MealType, NutritionPlan } from '../../types';
+import { calculateFoodCalories } from '../../infrastructure/data/data/foods';
 
 export interface SuggestionFood {
   food: Food;

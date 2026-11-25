@@ -10,10 +10,10 @@ import { useWorkoutStore } from '../store/workoutStore';
 import { useNutritionStore } from '../store/nutritionStore';
 import { useProgressStore } from '../store/progressStore';
 import { useHabitsStore } from '../store/habitsStore';
-import { calculateBadges, generateWeeklyRewards } from '../engine/weeklyRewards';
+import { calculateBadges, generateWeeklyRewards } from '../../domain/usecases/weeklyRewards';
 import { Card } from './ui/Card';
 import { Trophy, Award, Gift, Star, Flame, CheckCircle2 } from 'lucide-react';
-import type { Badge, WeeklyReward } from '../types';
+import type { Badge, WeeklyReward } from '../../types';
 
 export function WeeklyRewards() {
   const { workoutLogs, getAnalytics } = useWorkoutStore();

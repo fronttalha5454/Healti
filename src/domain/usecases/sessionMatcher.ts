@@ -8,7 +8,7 @@
  * Uses canonical lowercase Turkish day names for all internal matching.
  */
 
-import type { WorkoutSession, WorkoutPlan } from '../types';
+import type { WorkoutSession, WorkoutPlan } from '../../types';
 
 // ─── Canonical Day Names (lowercase Turkish, no abbreviations) ───
 export const CANONICAL_DAYS = [

@@ -6,9 +6,9 @@
  * Uses badges, achievements, flexible meal suggestions, rest/recovery, and motivational milestones.
  */
 
-import type { Badge, WeeklyReward, BadgeCategory, RewardType } from '../types';
-import type { WorkoutLog, FoodEntry, Measurement, WeightLog } from '../types';
-import type { DailyHabit, HabitLog } from '../types';
+import type { Badge, WeeklyReward, BadgeCategory, RewardType } from '../../types';
+import type { WorkoutLog, FoodEntry, Measurement, WeightLog } from '../../types';
+import type { DailyHabit, HabitLog } from '../../types';
 
 // ─── Badge Definitions ───
 const BADGE_DEFINITIONS: Omit<Badge, 'earnedAt' | 'progress' | 'current'>[] = [

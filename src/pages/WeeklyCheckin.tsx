@@ -1,15 +1,15 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useProgressStore } from '../store/progressStore';
-import { useWorkoutStore } from '../store/workoutStore';
-import { useNutritionStore } from '../store/nutritionStore';
-import { useUserStore } from '../store/userStore';
-import { useSleepStore } from '../store/sleepStore';
-import { useRecoveryStore } from '../store/recoveryStore';
-import { useWaterStore } from '../store/waterStore';
-import { Card } from '../components/ui/Card';
-import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
+import { useProgressStore } from '../presentation/store/progressStore';
+import { useWorkoutStore } from '../presentation/store/workoutStore';
+import { useNutritionStore } from '../presentation/store/nutritionStore';
+import { useUserStore } from '../presentation/store/userStore';
+import { useSleepStore } from '../presentation/store/sleepStore';
+import { useRecoveryStore } from '../presentation/store/recoveryStore';
+import { useWaterStore } from '../presentation/store/waterStore';
+import { Card } from '../presentation/components/ui/Card';
+import { Button } from '../presentation/components/ui/Button';
+import { Input } from '../presentation/components/ui/Input';
 import { ArrowLeft, Check, TrendingUp, TrendingDown, Minus, Moon, Droplets, Dumbbell, Flame } from 'lucide-react';
 
 export function WeeklyCheckin() {

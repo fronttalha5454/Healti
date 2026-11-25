@@ -7,7 +7,7 @@ import type {
   NotificationChannelConfig,
   DEFAULT_NOTIFICATION_PREFS,
   DEFAULT_CHANNEL_CONFIGS,
-} from '../types';
+} from '../../types';
 
 interface NotificationState {
   preferences: NotificationPreferences;

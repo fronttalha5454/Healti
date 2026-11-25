@@ -1,524 +1,1035 @@
-/**
- * Dashboard Component
- * 
- * Main dashboard screen showing calculated fitness metrics,
- * nutrition plans, and workout summaries in a card-based layout.
- * Uses the Fitness AI API service for calculations.
- */
-
-import { useState, useEffect, useCallback } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useToast } from '@/components/ui/use-toast';
-import { useUserStore } from '@/presentation/store/userStore';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui';
-import { Button } from '@/components/ui';
-import { LucideIcon } from 'lucide-react';
-import { ChartBar, Heart, Flame, Bolt, ForkAndKnife, Dumbbell, Sun, Moon, Timer, MapPin, Users, Leaf, Cpu, Shield, Atom } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-
-/* Icon components */
-const BmrIcon = (props: any) => <Flame {...props} />;
-const TdeeIcon = (props: any) => <Bolt {...props} />;
-const BmiIcon = (props: any) => <MapPin {...props} />;
-const ProteinIcon = (props: any) => <ForkAndKnife {...props} />;
-const CarbsIcon = (props: any) => <Leaf {...props} />;
-const FatIcon = (props: any) => <Atom {...props} />;
-const WaterIcon = (props: any) => <Sun {...props} />;
-const WorkoutIcon = (props: any) => <Dumbbell {...props} />;
-const PlanIcon = (props: any) => <Users {...props} />;
-
-/* Activity level colors */
-const activityLevelColors: Record<string, string> = {
-  sedentary: 'bg-gray-100 text-gray-800',
-  light: 'bg-blue-100 text-blue-800',
-  moderate: 'bg-green-100 text-green-800',
-  very_active: 'bg-orange-100 text-orange-800',
-};
-
-/* Fitness goal colors */
-const goalColors: Record<string, string> = {
-  lose_fat: 'bg-red-100 text-red-800',
-  lose_weight: 'bg-red-100 text-red-800',
-  gain_muscle: 'bg-green-100 text-green-800',
-  gain_weight: 'bg-green-100 text-green-800',
-  recomposition: 'bg-purple-100 text-purple-800',
-  improve_conditioning: 'bg-orange-100 text-orange-800',
-  general_fitness: 'bg-blue-100 text-blue-800',
-  body_shaping: 'bg-pink-100 text-pink-800',
-};
-
-/* Nutrition goal colors */
-const nutritionGoalColors: Record<string, string> = {
-  deficit: 'bg-red-100 text-red-800',
-  maintenance: 'bg-blue-100 text-blue-800',
-  surplus: 'bg-green-100 text-green-800',
-  recomposition: 'bg-purple-100 text-purple-800',
-};
+import { useMemo, useState, useCallback, useEffect, useRef } from 'react';
+import { useUserStore } from '../presentation/store/userStore';
+import { useWorkoutStore } from '../presentation/store/workoutStore';
+import { useNutritionStore } from '../presentation/store/nutritionStore';
+import { useWaterStore } from '../presentation/store/waterStore';
+import { useProgressStore } from '../presentation/store/progressStore';
+import { useSleepStore } from '../presentation/store/sleepStore';
+import { useHabitsStore } from '../presentation/store/habitsStore';
+import { useRecoveryStore } from '../presentation/store/recoveryStore';
+import { generateCompletePlan } from '../domain/usecases/smartPlan';
+import { getTodaySession, getTodayDateString } from '../domain/usecases/sessionMatcher';
+import { generateBodyAnalysis } from '../domain/usecases/bodyAnalysis';
+import { Card } from '../presentation/components/ui/Card';
+import { ProgressRing } from '../presentation/components/ui/ProgressRing';
+import { useNavigate } from 'react-router-dom';
+import { RecoveryInput } from '../presentation/components/RecoveryInput';
+import {
+  Dumbbell, Apple, TrendingUp, Droplets, Moon, Scale, ChevronRight,
+  MessageCircle, ClipboardCheck, ChevronDown, ChevronUp, Trophy, X,
+  BarChart3, Plus, ShoppingCart, Sparkles, Zap, TrendingDown, AlertTriangle,
+  Footprints, CheckSquare, Check, Bot, Activity,
+} from 'lucide-react';
+import { MEAL_TYPE_LABELS, type MealType } from '../types';
 
 export function Dashboard() {
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [bmr, setBmr] = useState<number | null>(null);
-  const [tdee, setTdee] = useState<number | null>(null);
-  const [macros, setMacros] = useState<{ protein: number; fat: number; carbs: number } | null>(null);
-  const [healthMetrics, setHealthMetrics] = useState<{ bmi: number; idealWeightRange: { min: number; max: number } } | null>(null);
-  const [nutritionPlan, setNutritionPlan] = useState<{ totalCalories: number; totalProtein: number; totalCarbs: number; totalFat: number; waterGoal: number; tips: string[] } | null>(null);
-  const [workoutPlan, setWorkoutPlan] = useState<{ id: string; name: string; type: string; daysPerWeek: number; sessions: any[] } | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const { toast } = useToast();
+  const { user, profile } = useUserStore();
+  const { activePlan, workoutLogs, completeWorkout } = useWorkoutStore();
+  const { plan: nutritionPlan, getDailyTotals, getEntriesForDate } = useNutritionStore();
+  const { weightLogs, measurements } = useProgressStore();
+  const {
+    getDailyTotal: getWaterTotal,
+    dailyGoal: waterGoal,
+    addWater,
+    removeWater,
+    entries: waterEntries,
+  } = useWaterStore();
+  const { getSleepForDate } = useSleepStore();
+  const {
+    habits,
+    habitLogs,
+    logHabit,
+    stepEntries,
+    stepGoal,
+    getStepTotalForDate,
+    initializeDefaultHabits,
+  } = useHabitsStore();
+  const { getRecoveryForDate, getWeeklyAverage: getRecoveryWeeklyAvg, getRecoveryTrend } = useRecoveryStore();
   const navigate = useNavigate();
-  const location = useLocation();
-
-  const { user, profile: storedProfile } = useUserStore();
-
-  // Load profile from store or use stored data
+  
+  // Initialize default habits on first load
   useEffect(() => {
-    if (storedProfile) {
-      setProfile(storedProfile);
+    initializeDefaultHabits();
+  }, [initializeDefaultHabits]);
+  const [showWorkoutDetail, setShowWorkoutDetail] = useState(false);
+  const [showMealDetail, setShowMealDetail] = useState(false);
+  const [showWaterPanel, setShowWaterPanel] = useState(false);
+  const [showHabitsPanel, setShowHabitsPanel] = useState(false);
+
+  // Target weight notification state
+  const targetReachedKey = 'fitness-ai-target-reached-seen';
+  const [targetDismissed, setTargetDismissed] = useState(() => {
+    try { return localStorage.getItem(targetReachedKey) === 'true'; } catch { return false; }
+  });
+  const [showConfetti, setShowConfetti] = useState(false);
+  const confettiShownKey = 'fitness-ai-confetti-shown';
+  const dismissTarget = useCallback(() => {
+    setTargetDismissed(true);
+    try { localStorage.setItem(targetReachedKey, 'true'); } catch {}
+  }, []);
+
+  const smartPlan = useMemo(() => profile ? generateCompletePlan(profile) : null, [profile]);
+
+  const now = new Date();
+  const today = getTodayDateString();
+  const dailyTotals = getDailyTotals(today);
+  const todayEntries = getEntriesForDate(today);
+  const latestWeight = weightLogs.length > 0 ? weightLogs[weightLogs.length - 1].weight : profile?.weight;
+  const todayWater = getWaterTotal(today);
+  const todayWaterEntries = waterEntries.filter(e => e.date === today);
+  const todaySteps = getStepTotalForDate(today);
+
+  // Meal breakdown
+  const mealTypes: MealType[] = ['breakfast', 'lunch', 'dinner', 'morning_snack', 'afternoon_snack', 'evening_snack'];
+  const mealTotals = useMemo(() => {
+    return mealTypes.map(type => {
+      const entries = todayEntries.filter(e => e.mealType === type);
+      return {
+        type,
+        label: MEAL_TYPE_LABELS[type].label,
+        icon: MEAL_TYPE_LABELS[type].icon,
+        calories: entries.reduce((s, e) => s + e.calories, 0),
+        protein: entries.reduce((s, e) => s + e.protein, 0),
+        carbs: entries.reduce((s, e) => s + e.carbs, 0),
+        fat: entries.reduce((s, e) => s + e.fat, 0),
+        count: entries.length,
+      };
+    });
+  }, [todayEntries]);
+
+  // Remaining macros
+  const remaining = useMemo(() => {
+    if (!nutritionPlan) return null;
+    return {
+      calories: Math.max(0, nutritionPlan.calories - dailyTotals.calories),
+      protein: Math.max(0, nutritionPlan.protein - dailyTotals.protein),
+      carbs: Math.max(0, nutritionPlan.carbs - dailyTotals.carbs),
+      fat: Math.max(0, nutritionPlan.fat - dailyTotals.fat),
+    };
+  }, [nutritionPlan, dailyTotals]);
+
+  const caloriesPercent = nutritionPlan
+    ? Math.min((dailyTotals.calories / nutritionPlan.calories) * 100, 100)
+    : 0;
+  const proteinPercent = nutritionPlan
+    ? Math.min((dailyTotals.protein / nutritionPlan.protein) * 100, 100)
+    : 0;
+
+  // Get today's workout using centralized session matcher
+  const todayWorkout = activePlan ? getTodaySession(activePlan) : null;
+  const hasWorkedOutToday = workoutLogs.some((log) => log.date === today);
+
+  // Quick confirm workout
+  const handleQuickConfirmWorkout = () => {
+    if (todayWorkout && !hasWorkedOutToday) {
+      completeWorkout(5, 5, 'Hızlı onay');
     }
-  }, [storedProfile]);
+  };
 
-  // Calculate metrics when profile changes
+  // Determine if target is achieved for confetti
+  const targetWeight = profile?.targetWeight;
+  const isTargetAchieved = useMemo(() => {
+    if (!targetWeight || !latestWeight || targetWeight <= 0) return false;
+    const diff = Math.abs(latestWeight - targetWeight);
+    const losing = ['lose_fat', 'lose_weight'].includes(profile?.goal || '');
+    const gaining = ['gain_muscle', 'gain_weight'].includes(profile?.goal || '');
+    if (losing) return latestWeight <= targetWeight + 0.5;
+    if (gaining) return latestWeight >= targetWeight - 0.5;
+    return diff <= 0.5;
+  }, [targetWeight, latestWeight, profile?.goal]);
+
+  // Trigger confetti once when target is first achieved
   useEffect(() => {
-    if (!profile) return;
+    if (isTargetAchieved && !targetDismissed) {
+      try {
+        const alreadyShown = localStorage.getItem(confettiShownKey) === 'true';
+        if (!alreadyShown) {
+          setShowConfetti(true);
+          localStorage.setItem(confettiShownKey, 'true');
+          setTimeout(() => setShowConfetti(false), 4000);
+        }
+      } catch {
+        setShowConfetti(true);
+        setTimeout(() => setShowConfetti(false), 4000);
+      }
+    }
+  }, [isTargetAchieved, targetDismissed]);
 
-    setIsLoading(true);
+  const waterPercent = Math.min((todayWater / waterGoal) * 100, 100);
+  const waterOptions = [
+    { amount: 200, icon: '🥛', label: '200ml' },
+    { amount: 250, icon: '🥤', label: '250ml' },
+    { amount: 330, icon: '🧴', label: '330ml' },
+    { amount: 500, icon: '🍶', label: '500ml' },
+  ];
 
-    // Calculate BMR
-    calculateBmrEndpoint({
-      age: profile.age,
-      weight: profile.weight,
-      height: profile.height,
-      gender: profile.gender,
-      goal: 'maintain' as const,
-      activityLevel: profile.activityLevel,
-    }).then((res) => setBmr(res.bmr))
-      .catch((err) => {
-        console.error('[Dashboard] BMR error:', err);
-        toast({
-          title: 'Hesaplama Hatası',
-          description: 'BMR hesaplanamadı. Lütfen profil sayfaya gidin.',
-          variant: 'destructive',
+  // Daily habits for today
+  const activeHabits = habits.filter(h => h.active);
+  const todayHabitLogs = habitLogs.filter(h => h.date === today && h.completed);
+
+  // AI Body Analysis insight (from bodyAnalysis engine)
+  const bodyInsights = useMemo(() => {
+    if (measurements.length < 2 && weightLogs.length < 2) return [];
+    return generateBodyAnalysis(
+      measurements,
+      weightLogs,
+      workoutLogs,
+      profile?.goal || 'general_fitness',
+      profile?.targetWeight,
+    ).slice(0, 2);
+  }, [measurements, weightLogs, workoutLogs, profile]);
+
+  // Smart insights
+  const smartInsights = useMemo(() => {
+    const insights: { icon: string; text: string; type: 'info' | 'warning' | 'success' }[] = [];
+
+    // Body analysis insights
+    if (bodyInsights.length > 0) {
+      bodyInsights.forEach(insight => {
+        insights.push({
+          icon: insight.trend === 'improving' ? '📈' : insight.trend === 'declining' ? '📉' : '📊',
+          text: insight.message,
+          type: insight.trend === 'improving' ? 'success' : insight.trend === 'declining' ? 'warning' : 'info',
         });
       });
-
-    // Calculate TDEE
-    calculateTdeeEndpoint({
-      age: profile.age,
-      weight: profile.weight,
-      height: profile.height,
-      gender: profile.gender,
-      goal: 'maintain' as const,
-      activityLevel: profile.activityLevel,
-    }).then((res) => setTdee(res.tdee))
-      .catch((err) => {
-        console.error('[Dashboard] TDEE error:', err);
-      });
-
-    // Calculate macros
-    calculateMacrosEndpoint({
-      age: profile.age,
-      weight: profile.weight,
-      height: profile.height,
-      gender: profile.gender,
-      goal: 'maintain' as const,
-      activityLevel: profile.activityLevel,
-    }).then((res) => setMacros({
-      protein: res.protein,
-      fat: res.fat,
-      carbs: res.carbs,
-    }))
-      .catch((err) => {
-        console.error('[Dashboard] Macros error:', err);
-      });
-
-    // Calculate health metrics (BMI, ideal weight)
-    calculateHealthMetricsEndpoint(profile).then((res) => setHealthMetrics(res))
-      .catch((err) => {
-        console.error('[Dashboard] Health metrics error:', err);
-      });
-
-    // Generate nutrition plan
-    generateNutritionPlanEndpoint(profile).then((res) => {
-      const mealPlanRes = generateDailyMealPlanEndpoint(profile);
-      setNutritionPlan({
-        totalCalories: res.calories,
-        totalProtein: res.protein,
-        totalCarbs: res.carbs,
-        totalFat: res.fat,
-        waterGoal: mealPlanRes.waterGoal,
-        tips: mealPlanRes.tips,
-      });
-    })
-      .catch((err) => {
-        console.error('[Dashboard] Nutrition plan error:', err);
-      });
-
-    // Generate workout plan
-    // We need to generate based on profile
-    const days = profile.trainingDaysPerWeek;
-    const level = profile.fitnessLevel;
-
-    let type: string;
-    if (days <= 3) {
-      type = level === 'none' || level === 'beginner' ? 'full_body' : 'upper_lower';
-    } else if (days <= 4) {
-      type = level === 'beginner' ? 'full_body' : 'upper_lower';
-    } else if (days <= 5) {
-      type = 'push_pull_legs';
-    } else {
-      type = 'hybrid';
     }
 
-    const generateSessions = (t: string, d: number, daysAvail?: string[]) => {
-      const dayNameMap: Record<string, string> = {
-        monday: 'Pazartesi', tuesday: 'Salı', wednesday: 'Çarşamba',
-        thursday: 'Perşembe', friday: 'Cuma', saturday: 'Cumartesi', sunday: 'Pazar',
-      };
-      const selectedDays = daysAvail
-        ? daysAvail.slice(0, d).map(d => dayNameMap[d] || d)
-        : ['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma'].slice(0, d);
-      return selectedDays.map((day, i) => ({
-        id: `session_${i}`,
-        name: `${t.charAt(0).toUpperCase() + t.slice(1)} - ${day}`,
-        day,
-        exerciseCount: 5,
-        estimatedDuration: 45,
-      }));
-    };
+    // Workout consistency
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    const weekLogs = workoutLogs.filter(l => new Date(l.date) >= weekAgo);
+    if (profile && weekLogs.length >= profile.trainingDaysPerWeek) {
+      insights.push({ icon: '🎉', text: `Bu hafta ${weekLogs.length} antrenman tamamladın — hedefine ulaştın!`, type: 'success' });
+    } else if (profile && weekLogs.length < profile.trainingDaysPerWeek * 0.5 && workoutLogs.length > 0) {
+      insights.push({ icon: '📉', text: 'Son 7 günde antrenman sıklığın düştü.', type: 'warning' });
+    } else if (weekLogs.length > 0) {
+      insights.push({ icon: '🏋️', text: `Bu hafta ${weekLogs.length} antrenman yaptın.`, type: 'info' });
+    }
 
-    setWorkoutPlan({
-      id: `plan_${Date.now()}`,
-      name: `${type.charAt(0).toUpperCase() + type.slice(1)} Programı`,
-      type,
-      daysPerWeek: profile.trainingDaysPerWeek,
-      sessions: generateSessions(type, profile.trainingDaysPerWeek, profile.availableDays),
-    })
-      .catch((err) => {
-        console.error('[Dashboard] Workout plan error:', err);
-      });
+    // Protein insight
+    if (nutritionPlan && dailyTotals.protein > 0) {
+      const proteinRemaining = nutritionPlan.protein - dailyTotals.protein;
+      if (proteinRemaining > 30) {
+        insights.push({ icon: '🥩', text: `Protein hedefinin ${Math.round(proteinRemaining)}g altındasın.`, type: 'warning' });
+      } else if (proteinRemaining <= 0) {
+        insights.push({ icon: '💪', text: 'Protein hedefine ulaştın!', type: 'success' });
+      }
+    }
 
-    setIsLoading(false);
-  }, [profile]);
+    // Water insight
+    const waterRemaining = waterGoal - todayWater;
+    if (waterRemaining > 500 && todayWater > 0) {
+      insights.push({ icon: '💧', text: `${waterRemaining}ml daha su içmen gerekiyor.`, type: 'info' });
+    } else if (todayWater >= waterGoal) {
+      insights.push({ icon: '💧', text: 'Su hedefine ulaştın!', type: 'success' });
+    }
 
-  if (isLoading || !profile) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Dashboard</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="h-64 flex items-center justify-center">
-              <Spinner className="mx-auto my-4" />
-              <p>Profil yükleniyor...</p>
-            </div>
-          ) : (
-            <p className="text-center text-text-muted">Profil verisi bulunamadı. Lütfen Profil sayfasından verilerinizi girin.</p>
-          )}
-        </CardContent>
-      </Card>
-    );
-  }
+    // Sleep insight
+    const todaySleepEntry = getSleepForDate(today);
+    if (todaySleepEntry) {
+      const hours = todaySleepEntry.durationMinutes / 60;
+      if (hours < 6) {
+        insights.push({ icon: '😴', text: `Dün gece sadece ${hours.toFixed(1)} saat uyudun — 7-9 saat ideal.`, type: 'warning' });
+      } else if (hours >= 7) {
+        insights.push({ icon: '😴', text: `Dün gece ${hours.toFixed(1)} saat uyudun — iyi!`, type: 'success' });
+      }
+    }
+
+    // Recovery insight
+    const todayRecoveryEntry = getRecoveryForDate(today);
+    if (todayRecoveryEntry) {
+      if (todayRecoveryEntry.recoveryScore < 30) {
+        insights.push({ icon: '⚠️', text: 'Kurtarma skorun düşük — bugün dinlenmeyi düşün.', type: 'warning' });
+      } else if (todayRecoveryEntry.recoveryScore >= 75) {
+        insights.push({ icon: '✅', text: 'Kurtarmanın iyi — yoğun antrenman yapabilirsin.', type: 'success' });
+      }
+    }
+
+    // No workout for 3 days
+    if (workoutLogs.length > 0) {
+      const lastWorkout = workoutLogs[workoutLogs.length - 1];
+      const daysSinceLastWorkout = Math.floor((new Date().getTime() - new Date(lastWorkout.date).getTime()) / (24 * 60 * 60 * 1000));
+      if (daysSinceLastWorkout >= 3) {
+        insights.push({ icon: '⏰', text: `${daysSinceLastWorkout} gündür antrenman yapmadın.`, type: 'warning' });
+      }
+    }
+
+    // Strength progress
+    if (workoutLogs.length >= 3) {
+      const lastThree = workoutLogs.slice(-3);
+      const avgRPE = lastThree.reduce((sum, l) => sum + l.rpe, 0) / lastThree.length;
+      if (avgRPE < 6) {
+        insights.push({ icon: '📈', text: 'Son antrenmanların kolay görünüyor — ağırlık artır.', type: 'info' });
+      }
+    }
+
+    // Steps insight
+    if (todaySteps > 0 && todaySteps < stepGoal * 0.5) {
+      insights.push({ icon: '👟', text: `Bugün ${todaySteps.toLocaleString()} adım attın — ${stepGoal.toLocaleString()} hedefinin yarısında.`, type: 'info' });
+    } else if (todaySteps >= stepGoal) {
+      insights.push({ icon: '👟', text: `Günlük adım hedefine ulaştın! (${todaySteps.toLocaleString()})`, type: 'success' });
+    }
+
+    // Measurement comparison (if available)
+    if (measurements.length >= 2) {
+      const last = measurements[measurements.length - 1];
+      const prev = measurements[measurements.length - 2];
+      if (last.waist && prev.waist) {
+        const diff = last.waist - prev.waist;
+        if (diff < -1) {
+          insights.push({ icon: '📉', text: `Bel çevren ${Math.abs(diff).toFixed(1)} cm azaldı — harika!`, type: 'success' });
+        } else if (diff > 1) {
+          insights.push({ icon: '📈', text: `Bel çevren ${diff.toFixed(1)} cm arttı.`, type: 'warning' });
+        }
+      }
+    }
+
+    return insights.slice(0, 4);
+  }, [bodyInsights, nutritionPlan, dailyTotals, todayWater, waterGoal, workoutLogs, profile, today, getSleepForDate, getRecoveryForDate, todaySteps, stepGoal, measurements]);
 
   return (
-    <>
-      {/* Stats Cards Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {/* BMR Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>BMR (Bazal Metabolizma)</CardTitle>
-          </CardHeader>
-          <CardContent className="py-6">
-            <div className="flex items-center space-x-3">
-              <BmrIcon className="w-6 h-6 text-primary" />
-              <div>
-                <p className="text-2xl font-bold text-primary">{bmr?.toFixed(0) || '--'} kcal</p>
-                <p className="text-sm text-text-muted">Günlük minimum kalori ihtiyacı</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+    <div className="min-h-[100dvh] bg-bg">
+      {/* Confetti */}
+      {showConfetti && <Confetti />}
 
-        {/* TDEE Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>TDEE (Toplam Günlük)</CardTitle>
-          </CardHeader>
-          <CardContent className="py-6">
-            <div className="flex items-center space-x-3">
-              <TdeeIcon className="w-6 h-6 text-accent" />
-              <div>
-                <p className="text-2xl font-bold text-accent">{tdee?.toFixed(0) || '--'} kcal</p>
-                <p className="text-sm text-text-muted">Günlük total calorie need</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* BMI Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>VKİ (Vücut Kitle İndeksi)</CardTitle>
-          </CardHeader>
-          <CardContent className="py-6">
-            <div className="flex items-center space-x-3">
-              <BmiIcon className="w-6 h-6 text-primary" />
-              <div>
-                <p className="text-2xl font-bold">{healthMetrics?.bmi?.toFixed(1) || '--'}</p>
-                <p className="text-sm text-text-muted">Normal aralık: 18.5 - 24.9</p>
-              </div>
-            </div>
-            <div mt-2>
-              <p className="text-xs text-text-muted">
-                Ideal kilo aralığı: {healthMetrics?.idealWeightRange.min?.toFixed(1) || '--'} - {
-                  healthMetrics?.idealWeightRange.max?.toFixed(1) || '--'} kg
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Goal Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Fitness Hedefi</CardTitle>
-          </CardHeader>
-          <CardContent className="py-6">
-            <div className="flex items-center space-x-3">
-              <BoxIcon className="w-6 h-6" />
-              <div>
-                <p className="text-lg font-medium" style={{ color: goalColors[profile?.goal as keyof typeof goalColors] || 'black' }}>
-                  {profile?.goal}
-                </p>
-              </div>
-            </div>
-            <p className="text-sm text-text-muted mt-1">
-              Beslemne Hedefi: {profile?.nutritionGoal}
+      {/* Header with real date */}
+      <div className="safe-top px-4 pt-4 pb-2">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm text-text-muted">Merhaba 👋</p>
+            <h1 className="text-xl font-bold text-text">{user?.name || 'Kullanıcı'}</h1>
+            <p className="text-xs text-primary font-medium mt-0.5">
+              {now.toLocaleDateString('tr-TR', { weekday: 'long' }).toUpperCase()} · {now.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' })}
             </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Two Column Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-        {/* Nutrition Column */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Günlük Makro İhtiyacınız</CardTitle>
-          </CardHeader>
-          <CardContent className="py-6">
-            {macros && (
-              <div className="grid grid-cols-3 gap-3 mb-6">
-                <div>
-                  <p className="text-xs text-text-muted">Protein</p>
-                  <p className="text-2xl font-bold">{macros!.protein} g</p>
-                  <p className="text-xs text-primary">Vücut kg × 2.0</p>
-                </div>
-                <div>
-                  <p className="text-xs text-text-muted">Yağ</p>
-                  <p className="text-2xl font-bold">{macros!.fat} g</p>
-                  <p className="text-xs text-primary">Toplam kalori × 25% / 9</p>
-                </div>
-                <div>
-                  <p className="text-xs text-text-muted">Karbonhidrat</p>
-                  <p className="text-2xl font-bold">{macros!.carbs} g</p>
-                  <p className="text-xs text-primary">Kalan kalori / 4</p>
-                </div>
-              </div>
-
-              {/* Progress Bar-like display */}
-              <div className="mt-4">
-                <p className="text-sm text-text-muted mb-2">Dağılım</p>
-                <div className="space-y-2">
-                  <div>
-                    <p className="text-xs text-text-muted">Protein %</p>
-                    <div className="h-2 bg-secondary/20 rounded-full overflow-hidden">
-                      <div className="h-full bg-primary rounded-full" style={{ width: '50%' }}></div>
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-xs text-text-muted">Karbonhidrat %</p>
-                    <div className="h-2 bg-secondary/20 rounded-full overflow-hidden">
-                      <div className="h-full bg-green-500 rounded-full" style={{ width: '45%' }}></div>
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-xs text-text-muted">Yağ %</p>
-                    <div className="h-2 bg-secondary/20 rounded-full overflow-hidden">
-                      <div className="h-full bg-orange-500 rounded-full" style={{ width: '25%' }}></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-            {nutritionPlan && (
-              <div mt-4>
-                <p className="text-sm text-text-muted">Su Hedefi</p>
-                <p className="text-lg font-bold text-primary">{nutritionPlan.waterGoal} ml</p>
-                <p className="text-xs text-text-muted">Günlük su tüketim hedefi</p>
-              </div>
-
-              <div mt-4>
-                <p className="text-sm text-text-muted">Besleme İpuçları</p>
-                <div className="space-y-2">
-                  {nutritionPlan.tips.map((tip, i) => (
-                    <div key={i} className="p-2 bg-primary/10 rounded">
-                      {tip}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Workout Column */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Haftalık Antrenman Programı</CardTitle>
-          </CardHeader>
-          <CardContent className="py-6">
-            {workoutPlan && (
-              <div>
-                <p className="text-sm text-text-muted mb-3">Program Tipi:</p>
-                <p className="text-lg font-medium text-primary">
-                  {workoutPlan.type.charAt(0).toUpperCase() + workoutPlan.type.slice(1)}
-                </p>
-
-                <p className="text-sm text-text-muted mb-3">Haftalık Gün Sayısı:</p>
-                <p className="text-2xl font-bold">
-                  {workoutPlan.daysPerWeek} gün
-                </p>
-
-                <p className="text-sm text-text-muted">Günlük Ortalama Süre:</p>
-                <p className="text-lg font-bold">
-                  {workoutPlan.sessions?.reduce((sum: number, s: any) => sum + s.estimatedDuration, 0) / workoutPlan.sessions?.length || '--'} dakika
-                </p>
-
-                <div className="mt-4 space-y-2">
-                  {workoutPlan.sessions?.map((session: any, i: number) => (
-                    <div key={i} className="p-3 bg-secondary/10 rounded">
-                      <p className="font-medium">{session.name}</p>
-                      <p className="text-xs text-text-muted">
-                        {session.exerciseCount} egzersis | {session.estimatedDuration} min
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Quick Start Button */}
-            <Button
-              variant="outline"
-              size="sm"
-              mt-3
-              onClick={() => navigate('/workout')}
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => navigate('/ai-coach')}
+              className="h-10 px-4 rounded-xl flex items-center gap-2 transition-all active:scale-[0.97]"
+              style={{
+                background: 'linear-gradient(135deg, #3b82f6, #6366f1, #8b5cf6)',
+                boxShadow: '0 4px 15px rgba(59, 130, 246, 0.3)',
+              }}
             >
-              Antrenmanı Başlat
-            </Button>
-          </CardContent>
-        </Card>
-
+              <MessageCircle size={16} className="text-white" />
+              <span className="text-sm font-semibold text-white">AI Koç</span>
+            </button>
+            <button
+              onClick={() => navigate('/weekly-checkin')}
+              className="w-10 h-10 rounded-xl bg-surface-card border border-border-light flex items-center justify-center"
+            >
+              <ClipboardCheck size={18} className="text-accent" />
+            </button>
+          </div>
+        </div>
       </div>
 
-      {/* Bottom Section - Meal Plan & Recommendations */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+      <div className="px-4 py-4 space-y-4">
+        {/* Target Weight Reached Notification */}
+        {profile?.targetWeight && latestWeight && !targetDismissed && (
+          <TargetReachedBanner
+            currentWeight={latestWeight}
+            targetWeight={profile.targetWeight}
+            goal={profile.goal}
+            onDismiss={dismissTarget}
+            onNavigate={() => navigate('/progress')}
+          />
+        )}
 
-        {/* Meal Plan Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Örnek Günlük Menü</CardTitle>
-          </CardHeader>
-          <CardContent className="py-6">
-            {nutritionPlan && nutritionPlan.meals ? (
-              <div className="space-y-3 text-sm">
-                {nutritionPlan.meals.map((meal) => (
-                  <div key={meal.mealType} className="p-3 bg-secondary/10 rounded">
-                    <p className="font-medium">{meal.name}</p>
-                    <p className="text-primary">{meal.calories} kcal | P:{meal.protein}g K:{meal.carbs}g Y:{meal.fat}g</p>
-                  </div>
-                ))}
+
+
+        {/* Smart Insights */}
+        {smartInsights.length > 0 && (
+          <div className="space-y-2">
+            {smartInsights.map((insight, i) => (
+              <div
+                key={i}
+                className={`flex items-center gap-3 p-3 rounded-xl border ${
+                  insight.type === 'warning'
+                    ? 'bg-warning/5 border-warning/20'
+                    : insight.type === 'success'
+                    ? 'bg-accent/5 border-accent/20'
+                    : 'bg-primary/5 border-primary/20'
+                }`}
+              >
+                <span className="text-lg">{insight.icon}</span>
+                <p className="text-xs text-text-secondary flex-1">{insight.text}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Daily Recovery Input */}
+        <RecoveryInput compact />
+
+        {/* Today's Workout */}
+        {todayWorkout && (
+          <Card
+            variant="gradient"
+            className="cursor-pointer active:scale-[0.98] transition-transform"
+            onClick={() => navigate('/workout')}
+          >
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <p className="text-xs text-primary-light font-medium uppercase tracking-wider">Bugünün Antrenmanı</p>
+                <h2 className="text-lg font-bold text-text">{todayWorkout.name}</h2>
+                <p className="text-sm text-text-secondary">
+                  {todayWorkout.exercises?.length || 0} egzersiz · ~{todayWorkout.estimatedDuration || 0} dk
+                </p>
+              </div>
+              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${
+                hasWorkedOutToday ? 'bg-accent/20' : 'bg-primary/20'
+              }`}>
+                {hasWorkedOutToday ? (
+                  <span className="text-2xl">✅</span>
+                ) : (
+                  <Dumbbell size={24} className="text-primary" />
+                )}
+              </div>
+            </div>
+
+            {hasWorkedOutToday ? (
+              <div className="mt-4 py-3 rounded-xl bg-accent/10 text-center">
+                <p className="text-sm font-semibold text-accent">✅ Bugün tamamlandı!</p>
+                <p className="text-xs text-text-muted mt-0.5">Harika iş çıkardın 💪</p>
               </div>
             ) : (
-              <p className="text-text-muted">Menü yükleniyor...</p>
+              <div className="mt-4 flex gap-2">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (activePlan) {
+                      navigate('/workout/active');
+                    } else {
+                      navigate('/workout');
+                    }
+                  }}
+                  className="flex-1 py-3 rounded-xl bg-primary text-white font-semibold text-sm active:scale-[0.97] transition-transform"
+                >
+                  🏋️ Antrenmanı Başlat
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); handleQuickConfirmWorkout(); }}
+                  className="py-3 px-4 rounded-xl bg-accent/10 text-accent font-semibold text-sm active:scale-[0.97] transition-colors flex items-center gap-1.5"
+                >
+                  ✅ Yapıldı
+                </button>
+              </div>
             )}
+          </Card>
+        )}
 
-            <div mt-4>
-              <p className="text-sm text-text-muted">Günlük Kalori: {nutritionPlan?.totalCalories} kcal</p>
-              <p className="text-sm text-text-muted">Toplam Protein: {nutritionPlan?.totalProtein}g</p>
-              <p className="text-sm text-text-muted">Toplam Karbonhidrat: {nutritionPlan?.totalCarbs}g</p>
-              <p className="text-sm text-text-muted">Toplam Yağ: {nutritionPlan?.totalFat}g</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Progress Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>İlerleme Takibi</CardTitle>
-          </CardHeader>
-          <CardContent className="py-6">
-            <p className="text-sm text-text-muted">Son 7 Gün</p>
-            <div className="h-64 bg-secondary/20 rounded mb-4">
-              <p className="text-center text-text-muted line-height-6">Grafik yüklenecek</p>
-            </div>
-
-            <div className="space-y-3">
-              <div>
-                <p className="text-xs text-text-muted">Kilo Değişi</p>
-                <p className="text-lg font-bold">±0.5 kg</p>
-              </div>
-              <div>
-                <p className="text-xs text-text-muted">Antrenman Sayısı</p>
-                <p className="text-lg font-bold">5/5</p>
-              </div>
-              <div>
-                <p className="text-xs text-text-muted">Beslenme Uygulama</p>
-                <p className="text-lg font-bold">80%</p>
+        {/* No workout plan - empty state */}
+        {!activePlan && !todayWorkout && (
+          <Card variant="gradient">
+            <div className="text-center py-4">
+              <Dumbbell size={40} className="text-text-muted mx-auto mb-3" />
+              <p className="text-text-secondary font-medium">Henüz programın yok</p>
+              <p className="text-xs text-text-muted mt-1 mb-4">AI ile özel programını oluştur veya mevcut programını ekle</p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => navigate('/ai-coach')}
+                  className="flex-1 py-3 rounded-xl bg-primary text-white font-semibold text-sm active:scale-[0.97]"
+                >
+                  🤖 AI ile Program Oluştur
+                </button>
+                <button
+                  onClick={() => navigate('/workout')}
+                  className="flex-1 py-3 rounded-xl bg-surface-card border border-border text-text-secondary font-semibold text-sm active:scale-[0.97]"
+                >
+                  📋 Program Ekle
+                </button>
               </div>
             </div>
-          </CardContent>
+          </Card>
+        )}
+
+        {/* Calorie & Protein Rings */}
+        <div className="grid grid-cols-2 gap-3">
+          <Card variant="elevated">
+            <div className="flex items-center gap-3">
+              <ProgressRing
+                progress={caloriesPercent}
+                size={52}
+                strokeWidth={5}
+                color="#10b981"
+              >
+                <span className="text-[10px] font-bold text-accent">{Math.round(caloriesPercent)}%</span>
+              </ProgressRing>
+              <div>
+                <p className="text-xs text-text-muted">Kalori</p>
+                <p className="text-sm font-bold text-text">
+                  {dailyTotals.calories} / {nutritionPlan?.calories || 0}
+                </p>
+                <p className="text-[10px] text-text-muted">
+                  {remaining ? `${remaining.calories} kaldı` : 'kcal'}
+                </p>
+              </div>
+            </div>
+          </Card>
+
+          <Card variant="elevated">
+            <div className="flex items-center gap-3">
+              <ProgressRing
+                progress={proteinPercent}
+                size={52}
+                strokeWidth={5}
+                color="#3b82f6"
+              >
+                <span className="text-[10px] font-bold text-primary">{Math.round(proteinPercent)}%</span>
+              </ProgressRing>
+              <div>
+                <p className="text-xs text-text-muted">Protein</p>
+                <p className="text-sm font-bold text-text">
+                  {dailyTotals.protein} / {nutritionPlan?.protein || 0}
+                </p>
+                <p className="text-[10px] text-text-muted">
+                  {remaining ? `${remaining.protein}g kaldı` : 'gram'}
+                </p>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* Meal Breakdown */}
+        <Card variant="elevated" className="cursor-pointer" onClick={() => setShowMealDetail(!showMealDetail)}>
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
+                <Apple size={18} className="text-accent" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-text">Günlük Öğünler</p>
+                <p className="text-xs text-text-muted">{todayEntries.length} öğün kaydedildi</p>
+              </div>
+            </div>
+            {showMealDetail ? <ChevronUp size={16} className="text-text-muted" /> : <ChevronDown size={16} className="text-text-muted" />}
+          </div>
+
+          <div className="grid grid-cols-3 gap-2 text-center text-xs">
+            <div>
+              <p className="text-text-muted">Kalori</p>
+              <p className="font-bold text-text">{dailyTotals.calories}</p>
+            </div>
+            <div>
+              <p className="text-text-muted">Protein</p>
+              <p className="font-bold text-primary">{dailyTotals.protein}g</p>
+            </div>
+            <div>
+              <p className="text-text-muted">Kalan</p>
+              <p className="font-bold text-warning">{remaining ? remaining.calories : '--'}</p>
+            </div>
+          </div>
+
+          {showMealDetail && (
+            <div className="mt-3 space-y-1.5 animate-slide-up" onClick={(e) => e.stopPropagation()}>
+              {mealTotals.map(meal => (
+                <div
+                  key={meal.type}
+                  className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-surface text-xs"
+                >
+                  <div className="flex items-center gap-2">
+                    <span>{meal.icon}</span>
+                    <span className="text-text-secondary">{meal.label}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-text-muted">{meal.calories} kcal</span>
+                    <span className="text-primary">{meal.protein}g P</span>
+                  </div>
+                </div>
+              ))}
+              <button
+                onClick={() => navigate('/nutrition')}
+                className="w-full py-2 rounded-lg bg-primary/10 text-primary text-xs font-semibold mt-2"
+              >
+                + Öğün Ekle
+              </button>
+            </div>
+          )}
         </Card>
 
-        {/* Recommendations Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Öneriler</CardTitle>
-          </CardHeader>
-          <CardContent className="py-6">
-            <p className="text-sm text-text-muted">Bu hafta için öneriler</p>
-            <div className="mt-4 space-y-2">
-              {profile?.goal === 'lose_fat' && (
-                <div>
-                  <p className="text-primary">• Kalori açığı oluşturun (TDEE - 300-500 kcal)</p>
-                  <p className="text-primary">• Protein yüksek tutun (kas kaybını önler)</p>
-                </div>
-              )}
-              {profile?.goal === 'gain_muscle' && (
-                <div>
-                  <p className="text-primary">• Kalori fazlası oluşturun (TDEE + 300-500 kcal)</p>
-                  <p className="text-primary">• Protein 2g/kg vücut ağırlığı</p>
-                </div>
-              )}
-              {profile?.nutritionGoal === 'deficit' && (
-                <div>
-                  <p className="text-primary">• Ara öğünlerde protein şake tercih edin</p>
-                  <p className="text-primary">• İşlenmiş gıdalardan kaçının</p>
-                </div>
-              )}
-              {profile?.nutritionGoal === 'maintenance' && (
-                <div>
-                  <p className="text-primary">• Dengeli beslenme hedefinize odaklanın</p>
-                  <p className="text-primary">• Yeterli su tüketimini kontrol edin</p>
+        {/* Macro Bars */}
+        <Card variant="elevated">
+          <h3 className="text-sm font-semibold text-text mb-3">Günlük Makro</h3>
+          <div className="space-y-3">
+            <MacroBar
+              label="Karbonhidrat"
+              current={dailyTotals.carbs}
+              target={nutritionPlan?.carbs || 0}
+              color="bg-warning"
+            />
+            <MacroBar
+              label="Yağ"
+              current={dailyTotals.fat}
+              target={nutritionPlan?.fat || 0}
+              color="bg-danger"
+            />
+          </div>
+        </Card>
+
+        {/* Water Tracking */}
+        <Card variant="elevated" className="cursor-pointer" onClick={() => setShowWaterPanel(!showWaterPanel)}>
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                <Droplets size={18} className="text-blue-500" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-text">Su Takibi</p>
+                <p className="text-xs text-text-muted">{todayWater} / {waterGoal} ml</p>
+              </div>
+            </div>
+            {showWaterPanel ? <ChevronUp size={16} className="text-text-muted" /> : <ChevronDown size={16} className="text-text-muted" />}
+          </div>
+
+          <div className="h-2 bg-surface rounded-full overflow-hidden">
+            <div
+              className="h-full bg-blue-500 rounded-full transition-all duration-300"
+              style={{ width: `${waterPercent}%` }}
+            />
+          </div>
+          <p className="text-[10px] text-text-muted text-center mt-1">{Math.round(waterPercent)}% · {Math.round(waterGoal - todayWater)} ml kaldı</p>
+
+          {showWaterPanel && (
+            <div className="mt-4 space-y-3 animate-slide-up" onClick={(e) => e.stopPropagation()}>
+              <div className="grid grid-cols-4 gap-2">
+                {waterOptions.map((opt) => (
+                  <button
+                    key={opt.amount}
+                    onClick={() => addWater(opt.amount)}
+                    className="flex flex-col items-center gap-1 p-2.5 rounded-xl bg-blue-500/5 border border-blue-500/10 hover:bg-blue-500/10 transition-colors"
+                  >
+                    <span className="text-lg">{opt.icon}</span>
+                    <span className="text-[10px] font-medium text-text">{opt.label}</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Custom water */}
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  placeholder="Özel ml"
+                  id="water-custom-input"
+                  className="flex-1 bg-surface-card border border-border rounded-xl px-3 py-2 text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      const val = parseInt((e.target as HTMLInputElement).value);
+                      if (val > 0) {
+                        addWater(val);
+                        (e.target as HTMLInputElement).value = '';
+                      }
+                    }
+                  }}
+                />
+                <button
+                  onClick={() => {
+                    const input = document.getElementById('water-custom-input') as HTMLInputElement;
+                    const val = parseInt(input?.value || '0');
+                    if (val > 0) {
+                      addWater(val);
+                      input.value = '';
+                    }
+                  }}
+                  className="w-10 h-10 rounded-xl bg-blue-500 text-white flex items-center justify-center active:scale-95 transition-transform"
+                >
+                  <Plus size={16} />
+                </button>
+              </div>
+
+              {/* Recent entries */}
+              {todayWaterEntries.length > 0 && (
+                <div className="space-y-1">
+                  {todayWaterEntries.slice(-5).reverse().map((entry) => (
+                    <div key={entry.id} className="flex items-center justify-between py-1 px-2 rounded-lg bg-surface text-xs">
+                      <span className="text-text-secondary">💧 {entry.amount} ml</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-text-muted">
+                          {new Date(entry.timestamp).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                        <button onClick={() => removeWater(entry.id)} className="p-0.5">
+                          <X size={10} className="text-danger" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
-          </CardContent>
+          )}
         </Card>
 
+        {/* Today's Summary - Sleep, Weight, Steps */}
+        <div className="grid grid-cols-3 gap-3">
+          <Card
+            variant="elevated"
+            padding="sm"
+            className="text-center cursor-pointer active:scale-[0.98] transition-transform"
+            onClick={() => navigate('/sleep')}
+          >
+            <Moon size={18} className="text-purple-400 mx-auto mb-1" />
+            <p className="text-[10px] text-text-muted">Uyku</p>
+            {(() => {
+              const todaySleepEntry = getSleepForDate(today);
+              if (todaySleepEntry) {
+                const hrs = (todaySleepEntry.durationMinutes / 60).toFixed(1);
+                return (
+                  <>
+                    <p className="text-sm font-bold text-text">{hrs}</p>
+                    <p className="text-[10px] text-text-muted">saat</p>
+                  </>
+                );
+              }
+              return (
+                <>
+                  <p className="text-sm font-bold text-text">--</p>
+                  <p className="text-[10px] text-text-muted">kayıt yok</p>
+                </>
+              );
+            })()}
+          </Card>
+
+          <Card variant="elevated" padding="sm" className="text-center">
+            <Scale size={18} className="text-green-400 mx-auto mb-1" />
+            <p className="text-[10px] text-text-muted">Kilo</p>
+            <p className="text-sm font-bold text-text">{latestWeight || '--'}</p>
+            <p className="text-[10px] text-text-muted">kg</p>
+          </Card>
+
+          <Card variant="elevated" padding="sm" className="text-center">
+            <Footprints size={18} className="text-orange-400 mx-auto mb-1" />
+            <p className="text-[10px] text-text-muted">Adım</p>
+            <p className="text-sm font-bold text-text">
+              {todaySteps > 0 ? todaySteps.toLocaleString() : '--'}
+            </p>
+            <p className="text-[10px] text-text-muted">/ {stepGoal.toLocaleString()}</p>
+          </Card>
+        </div>
+
+        {/* Daily Habits */}
+        {activeHabits.length > 0 && (
+          <Card variant="elevated" className="cursor-pointer" onClick={() => setShowHabitsPanel(!showHabitsPanel)}>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center">
+                  <CheckSquare size={18} className="text-warning" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-text">Günlük Alışkanlıklar</p>
+                  <p className="text-xs text-text-muted">
+                    {todayHabitLogs.length} / {activeHabits.length} tamamlandı
+                  </p>
+                </div>
+              </div>
+              {showHabitsPanel ? <ChevronUp size={16} className="text-text-muted" /> : <ChevronDown size={16} className="text-text-muted" />}
+            </div>
+
+            <div className="h-2 bg-surface rounded-full overflow-hidden">
+              <div
+                className="h-full bg-warning rounded-full transition-all duration-300"
+                style={{ width: `${activeHabits.length > 0 ? (todayHabitLogs.length / activeHabits.length) * 100 : 0}%` }}
+              />
+            </div>
+
+            {showHabitsPanel && (
+              <div className="mt-3 space-y-1.5 animate-slide-up" onClick={(e) => e.stopPropagation()}>
+                {activeHabits.map(habit => {
+                  const isCompleted = todayHabitLogs.some(l => l.habitId === habit.id);
+                  return (
+                    <button
+                      key={habit.id}
+                      onClick={() => logHabit(habit.id, today, !isCompleted)}
+                      className={`w-full flex items-center gap-3 p-2 rounded-lg transition-colors ${
+                        isCompleted ? 'bg-accent/10' : 'bg-surface'
+                      }`}
+                    >
+                      <div className={`w-6 h-6 rounded-md flex items-center justify-center ${
+                        isCompleted ? 'bg-accent/20' : 'border border-border'
+                      }`}>
+                        {isCompleted && <Check size={12} className="text-accent" />}
+                      </div>
+                      <span className="text-lg">{habit.icon}</span>
+                      <span className={`text-xs ${isCompleted ? 'text-accent line-through' : 'text-text-secondary'}`}>
+                        {habit.name}
+                      </span>
+                    </button>
+                  );
+                })}
+                <button
+                  onClick={() => navigate('/progress')}
+                  className="w-full py-2 rounded-lg bg-primary/10 text-primary text-xs font-semibold mt-2"
+                >
+                  + Alışkanlık Ekle
+                </button>
+              </div>
+            )}
+          </Card>
+        )}
+
+        {/* Quick Actions */}
+        <div className="space-y-2">
+          <h3 className="text-sm font-semibold text-text">Hızlı İşlemler</h3>
+          <button
+            onClick={() => navigate('/nutrition')}
+            className="w-full flex items-center gap-3 p-3 rounded-xl bg-surface-card border border-border-light active:scale-[0.98] transition-transform"
+          >
+            <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
+              <Apple size={18} className="text-accent" />
+            </div>
+            <div className="flex-1 text-left">
+              <p className="text-sm font-medium text-text">Yemek Ekle</p>
+              <p className="text-xs text-text-muted">Günlük beslenmeni takip et</p>
+            </div>
+            <ChevronRight size={16} className="text-text-muted" />
+          </button>
+          <button
+            onClick={() => navigate('/progress')}
+            className="w-full flex items-center gap-3 p-3 rounded-xl bg-surface-card border border-border-light active:scale-[0.98] transition-transform"
+          >
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <TrendingUp size={18} className="text-primary" />
+            </div>
+            <div className="flex-1 text-left">
+              <p className="text-sm font-medium text-text">İlerlemeyi Kaydet</p>
+              <p className="text-xs text-text-muted">Kilo ve ölçüm ekle</p>
+            </div>
+            <ChevronRight size={16} className="text-text-muted" />
+          </button>
+          <button
+            onClick={() => navigate('/shopping')}
+            className="w-full flex items-center gap-3 p-3 rounded-xl bg-surface-card border border-border-light active:scale-[0.98] transition-transform"
+          >
+            <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
+              <ShoppingCart size={18} className="text-accent" />
+            </div>
+            <div className="flex-1 text-left">
+              <p className="text-sm font-medium text-text">Alışveriş Listesi</p>
+              <p className="text-xs text-text-muted">Planına göre haftalık malzemeler</p>
+            </div>
+            <ChevronRight size={16} className="text-text-muted" />
+          </button>
+          <button
+            onClick={() => navigate('/weekly-report')}
+            className="w-full flex items-center gap-3 p-3 rounded-xl bg-surface-card border border-border-light active:scale-[0.98] transition-transform"
+          >
+            <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center">
+              <BarChart3 size={18} className="text-warning" />
+            </div>
+            <div className="flex-1 text-left">
+              <p className="text-sm font-medium text-text">Haftalık Rapor</p>
+              <p className="text-xs text-text-muted">Bu haftanın özeti ve önerileri</p>
+            </div>
+            <ChevronRight size={16} className="text-text-muted" />
+          </button>
+        </div>
+
+        {/* Workout Reason */}
+        {activePlan?.reason && (
+          <Card variant="elevated" padding="sm">
+            <div className="flex gap-2">
+              <span className="text-lg">💡</span>
+              <div>
+                <p className="text-xs font-medium text-primary mb-1">Neden bu program?</p>
+                <p className="text-xs text-text-secondary leading-relaxed">{activePlan.reason}</p>
+              </div>
+            </div>
+          </Card>
+        )}
       </div>
-    </>
+    </div>
+  );
+}
+
+function MacroBar({ label, current, target, color }: { label: string; current: number; target: number; color: string }) {
+  const percent = target > 0 ? Math.min((current / target) * 100, 100) : 0;
+  return (
+    <div>
+      <div className="flex justify-between text-xs mb-1">
+        <span className="text-text-secondary">{label}</span>
+        <span className="text-text-muted">{Math.round(current)} / {target}g</span>
+      </div>
+      <div className="h-2 bg-surface rounded-full overflow-hidden">
+        <div
+          className={`h-full ${color} rounded-full transition-all duration-500`}
+          style={{ width: `${percent}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+/* ─── Target Weight Reached Banner ─── */
+function TargetReachedBanner({
+  currentWeight,
+  targetWeight,
+  goal,
+  onDismiss,
+  onNavigate,
+}: {
+  currentWeight: number;
+  targetWeight: number;
+  goal?: string;
+  onDismiss: () => void;
+  onNavigate: () => void;
+}) {
+  const diff = Math.abs(currentWeight - targetWeight);
+  const reached = diff <= 0.5;
+  const almostThere = diff <= 2 && !reached;
+
+  if (targetWeight <= 0) return null;
+
+  const losing = ['lose_fat', 'lose_weight'].includes(goal || '');
+  const gaining = ['gain_muscle', 'gain_weight'].includes(goal || '');
+
+  let isAchieved = false;
+  if (losing) {
+    isAchieved = currentWeight <= targetWeight + 0.5;
+  } else if (gaining) {
+    isAchieved = currentWeight >= targetWeight - 0.5;
+  } else {
+    isAchieved = reached;
+  }
+
+  if (!isAchieved && !almostThere) return null;
+
+  const diffFromTarget = currentWeight - targetWeight;
+  const direction = diffFromTarget > 0 ? 'fazla' : 'eksik';
+
+  return (
+    <div className={`rounded-2xl p-4 relative overflow-hidden ${
+      isAchieved
+        ? 'bg-gradient-to-r from-accent/20 to-primary/20 border border-accent/30'
+        : 'bg-gradient-to-r from-warning/10 to-primary/10 border border-warning/30'
+    }`}>
+      <button
+        onClick={onDismiss}
+        className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/10 hover:bg-black/20 transition-colors"
+      >
+        <X size={14} className="text-text-muted" />
+      </button>
+
+      <div className="flex items-start gap-3">
+        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 ${
+          isAchieved ? 'bg-accent/20' : 'bg-warning/20'
+        }`}>
+          {isAchieved ? (
+            <Trophy size={24} className="text-accent" />
+          ) : (
+            <Scale size={24} className="text-warning" />
+          )}
+        </div>
+        <div className="flex-1 min-w-0">
+          {isAchieved ? (
+            <>
+              <h3 className="text-sm font-bold text-accent">🎉 Tebrikler! Hedefine ulaştın!</h3>
+              <p className="text-xs text-text-secondary mt-1">
+                {currentWeight} kg ile hedef kilon olan {targetWeight} kg'ya ulaştın.
+                Harika bir iş başardın!
+              </p>
+            </>
+          ) : (
+            <>
+              <h3 className="text-sm font-bold text-warning">🔥 Neredeyse hedefte!</h3>
+              <p className="text-xs text-text-secondary mt-1">
+                {diff.toFixed(1)} kg {direction} kaldın. Hedef: {targetWeight} kg, Güncel: {currentWeight} kg
+              </p>
+            </>
+          )}
+          <div className="flex gap-2 mt-2">
+            <button
+              onClick={onNavigate}
+              className="px-3 py-1.5 rounded-lg bg-white/10 text-xs font-medium text-text hover:bg-white/20 transition-colors"
+            >
+              📊 Detayları Gör
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-3">
+        <div className="flex justify-between text-[10px] text-text-muted mb-1">
+          <span>Güncel: {currentWeight} kg</span>
+          <span>Hedef: {targetWeight} kg</span>
+        </div>
+        <div className="h-2 bg-black/10 rounded-full overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all duration-700 ${
+              isAchieved ? 'bg-accent' : 'bg-warning'
+            }`}
+            style={{ width: `${isAchieved ? 100 : Math.max(8, Math.min(92, (1 - diff / 15) * 100))}%` }}
+          />
+        </div>
+        <p className="text-[10px] text-text-muted mt-1 text-center">
+          {isAchieved ? '✅ Hedefe ulaşıldı!' : `Kalan: ${diff.toFixed(1)} kg`}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Confetti Animation ─── */
+const CONFETTI_COLORS = [
+  '#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444',
+  '#ec4899', '#06b6d4', '#84cc16', '#f97316', '#a855f7',
+];
+
+const CONFETTI_SHAPES = ['square', 'circle', 'strip'] as const;
+
+type ConfettiPiece = {
+  id: number;
+  x: number;
+  color: string;
+  size: number;
+  duration: number;
+  delay: number;
+  shape: typeof CONFETTI_SHAPES[number];
+  sway: boolean;
+  rotation: number;
+};
+
+function generateConfettiPieces(count: number): ConfettiPiece[] {
+  return Array.from({ length: count }, (_, i) => ({
+    id: i,
+    x: Math.random() * 100,
+    color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
+    size: Math.random() * 8 + 4,
+    duration: Math.random() * 2 + 2,
+    delay: Math.random() * 1.5,
+    shape: CONFETTI_SHAPES[Math.floor(Math.random() * CONFETTI_SHAPES.length)],
+    sway: Math.random() > 0.4,
+    rotation: Math.random() * 360,
+  }));
+}
+
+function Confetti() {
+  const pieces = useRef(generateConfettiPieces(60)).current;
+
+  return (
+    <div className="confetti-container">
+      {pieces.map((piece) => {
+        const shapeStyles: React.CSSProperties = {
+          left: `${piece.x}%`,
+          width: piece.shape === 'strip' ? `${piece.size * 0.4}px` : `${piece.size}px`,
+          height: piece.shape === 'strip' ? `${piece.size * 2}px` : `${piece.size}px`,
+          backgroundColor: piece.color,
+          borderRadius: piece.shape === 'circle' ? '50%' : piece.shape === 'strip' ? '2px' : '2px',
+          animationDuration: `${piece.duration}s`,
+          animationDelay: `${piece.delay}s`,
+          transform: `rotate(${piece.rotation}deg)`,
+        };
+
+        return (
+          <div
+            key={piece.id}
+            className={`confetti-piece ${piece.sway ? 'sway' : ''}`}
+            style={shapeStyles}
+          />
+        );
+      })}
+
+      <div className="confetti-star">
+        <span className="text-6xl block">🎉</span>
+      </div>
+    </div>
   );
 }

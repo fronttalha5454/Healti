@@ -11,9 +11,9 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useUserStore } from '../store/userStore';
-import { useMealPlanStore, PLANNER_SLOTS } from '../store/mealPlanStore';
-import { useNutritionStore, roundNutrition } from '../store/nutritionStore';
+import { useUserStore } from '../presentation/store/userStore';
+import { useMealPlanStore, PLANNER_SLOTS } from '../presentation/store/mealPlanStore';
+import { useNutritionStore, roundNutrition } from '../presentation/store/nutritionStore';
 import { useToast } from '@/components/ui/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 import { Button } from '@/components/ui';

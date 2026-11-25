@@ -15,9 +15,9 @@
 import { Capacitor } from '@capacitor/core';
 import type { Reminder, NotificationType, DayOfWeek } from '../types';
 import { REMINDER_TYPE_LABELS } from '../types';
-import { useReminderStore } from '../store/reminderStore';
-import { useNotificationStore } from '../store/notificationStore';
-import { useUserStore } from '../store/userStore';
+import { useReminderStore } from '../presentation/store/reminderStore';
+import { useNotificationStore } from '../presentation/store/notificationStore';
+import { useUserStore } from '../presentation/store/userStore';
 import type { NotificationChannelConfig } from '../types';
 
 // ─── Constants ───

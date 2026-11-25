@@ -15,8 +15,8 @@ import type {
   ReminderType,
   NotificationType,
   DayOfWeek,
-} from '../types';
-import { REMINDER_TYPE_LABELS } from '../types';
+} from '../../types';
+import { REMINDER_TYPE_LABELS } from '../../types';
 
 function generateId(): string {
   return `reminder_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;

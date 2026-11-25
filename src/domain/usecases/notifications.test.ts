@@ -9,11 +9,11 @@ import {
   COOLDOWN_PERIODS,
   parseTimeToMinutes,
   isTimeInRange,
-} from '../store/notificationStore';
+} from '../../presentation/store/notificationStore';
 import type {
   NotificationPreferences,
   NotificationType,
-} from '../types';
+} from '../../types';
 
 // ─── Helpers ───
 

@@ -7,7 +7,7 @@ import {
   validatePasswordMatch,
   validateDisplayName,
 } from '../services/auth';
-import { useUserStore } from '../store/userStore';
+import { useUserStore } from '../presentation/store/userStore';
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
 
 export function Register() {

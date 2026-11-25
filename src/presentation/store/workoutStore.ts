@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { WorkoutPlan, WorkoutLog, WorkoutSession, ExerciseLog, SetLog, WorkoutAnalytics, WorkoutExercise } from '../types';
-import { getExerciseById } from '../data/exercises';
+import type { WorkoutPlan, WorkoutLog, WorkoutSession, ExerciseLog, SetLog, WorkoutAnalytics, WorkoutExercise } from '../../types';
+import { getExerciseById } from '../../infrastructure/data/data/exercises';
 
 // ─── Personal Record ───
 export interface PersonalRecord {

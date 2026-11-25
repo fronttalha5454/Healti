@@ -1,14 +1,14 @@
 import { useState } from 'react';
-import { useUserStore } from '../store/userStore';
-import { useWorkoutStore } from '../store/workoutStore';
-import { useNutritionStore } from '../store/nutritionStore';
-import { calculateNutritionTargets, selectWorkoutProgram } from '../engine/fitness';
+import { useUserStore } from '../presentation/store/userStore';
+import { useWorkoutStore } from '../presentation/store/workoutStore';
+import { useNutritionStore } from '../presentation/store/nutritionStore';
+import { calculateNutritionTargets, selectWorkoutProgram } from '../domain/usecases/fitness';
 import type { Profile, FitnessGoal, NutritionGoal, Equipment, GoalRegion, GoalRegionArea, GoalRegionObjective } from '../types';
 import { GOAL_REGION_LABELS, GOAL_OBJECTIVE_LABELS, FITNESS_GOAL_LABELS } from '../types';
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
-import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
-import { Card } from '../components/ui/Card';
+import { Button } from '../presentation/components/ui/Button';
+import { Input } from '../presentation/components/ui/Input';
+import { Card } from '../presentation/components/ui/Card';
 
 const TOTAL_STEPS = 14;
 

@@ -1,5 +1,5 @@
-import type { Profile, WorkoutPlan, WorkoutSession, NutritionPlan, Exercise, WorkoutExercise, WorkoutLog } from '../types';
-import { EXERCISES } from '../data/exercises';
+import type { Profile, WorkoutPlan, WorkoutSession, NutritionPlan, Exercise, WorkoutExercise, WorkoutLog } from '../../types';
+import { EXERCISES } from '../../infrastructure/data/data/exercises';
 
 // Mifflin-St Jeor Equation
 export function calculateBMR(profile: Profile): number {
@@ -438,7 +438,7 @@ export function suggestProgression(
 
 // ─── Goal Region Analysis ───
 
-import type { GoalRegion, GoalRegionArea, GoalRegionObjective, Measurement } from '../types';
+import type { GoalRegion, GoalRegionArea, GoalRegionObjective, Measurement } from '../../types';
 
 export function analyzeGoalRegion(
   region: GoalRegion,
@@ -638,7 +638,7 @@ export function generateAdaptiveSuggestions(
 
 // ─── Goal Region to Workout Mapping ───
 
-import type { MuscleGroup } from '../types';
+import type { MuscleGroup } from '../../types';
 
 export function getMuscleGroupsForRegion(region: GoalRegionArea): MuscleGroup[] {
   switch (region) {

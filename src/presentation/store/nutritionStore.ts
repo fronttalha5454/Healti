@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { NutritionPlan, FoodEntry, FoodPhotoAnalysis, MealType } from '../types';
+import type { NutritionPlan, FoodEntry, FoodPhotoAnalysis, MealType } from '../../types';
 
 interface NutritionState {
   plan: NutritionPlan | null;

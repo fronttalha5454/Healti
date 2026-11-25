@@ -3,7 +3,7 @@ import {
   findSubstitution,
   isExerciseForEnvironment,
 } from './exerciseSubstitution';
-import { getExerciseById, EXERCISES } from '../data/exercises';
+import { getExerciseById, EXERCISES } from '../../infrastructure/data/data/exercises';
 
 // ─── isExerciseForEnvironment Tests ───
 
