@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { analyzeFoodPreferences, generateMealSuggestions } from './mealSuggestionEngine';
-import type { FoodEntry, Profile, NutritionPlan } from '../types';
-import { FOODS } from '../data/foods';
+import type { FoodEntry, Profile, NutritionPlan } from '../../types';
+import { FOODS } from '../../infrastructure/data/data/foods';
 
 const today = new Date().toISOString().split('T')[0];
 const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];

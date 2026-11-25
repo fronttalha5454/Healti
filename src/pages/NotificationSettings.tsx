@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useNotificationStore } from '../store/notificationStore';
+import { useNotificationStore } from '../presentation/store/notificationStore';
 import {
   NOTIFICATION_TYPE_LABELS,
   CHANNEL_IMPORTANCE_LABELS,
@@ -8,9 +8,9 @@ import {
   type NotificationChannelConfig,
   type ChannelImportance,
 } from '../types';
-import { getNotificationSummary } from '../engine/notifications';
-import { Card } from '../components/ui/Card';
-import { Button } from '../components/ui/Button';
+import { getNotificationSummary } from '../domain/usecases/notifications';
+import { Card } from '../presentation/components/ui/Card';
+import { Button } from '../presentation/components/ui/Button';
 import {
   requestNotificationPermission,
   getPermissionState,

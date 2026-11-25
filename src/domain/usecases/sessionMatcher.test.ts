@@ -13,7 +13,7 @@ import {
   CANONICAL_DAYS,
   type CanonicalDay,
 } from './sessionMatcher';
-import type { WorkoutPlan, WorkoutSession } from '../types';
+import type { WorkoutPlan, WorkoutSession } from '../../types';
 
 // ─── normalizeDay Tests ───
 

@@ -1,6 +1,6 @@
-import type { Profile } from '../types';
-import type { FoodEntry } from '../types';
-import { getExerciseById, MUSCLE_GROUP_LABELS } from '../data/exercises';
+import type { Profile } from '../../types';
+import type { FoodEntry } from '../../types';
+import { getExerciseById, MUSCLE_GROUP_LABELS } from '../../infrastructure/data/data/exercises';
 import { findSubstitution } from './exerciseSubstitution';
 
 export interface DailyWorkoutPlan {
@@ -950,10 +950,10 @@ export function generateSmartCoachResponse(
   // ── Adımlar ──
   if (lower.includes('adım') || lower.includes('steps') || lower.includes('kaç adım')) {
     if (context?.steps !== undefined) {
-      return `👟 **Adım Takibi:**\n\n📊 Bugünkü adımların: ${context.steps.toLocaleString()}\n🎯 Hedef: 8.000 adım\n\n${context.steps >= 8000 
+      return `👟 **Adım Takibi:**\n\n📊 Bugünkü adımların: ${context.steps.toLocaleString('tr-TR')}\n🎯 Hedef: 8.000 adım\n\n${context.steps >= 8000 
         ? '✅ Harika! Günlük adım hedefine ulaştın!' 
         : context.steps >= 5000 
-          ? `⚠️ ${8000 - context.steps} adım daha atman gerekiyor. Hedefe ulaşmak için biraz daha yürü.` 
+          ? `⚠️ ${(8000 - context.steps).toLocaleString('tr-TR')} adım daha atman gerekiyor. Hedefe ulaşmak için biraz daha yürü.` 
           : '⚠️ Adım sayın düşük. Sağlığını artırmak için her gün 8.000 adım atmaya çalış.'}\n\n💡 **İpucu:**
 • İşe yürüyerek git veya asansör yerine merdiven kullan\n• Öğle arasında 10 dakika yürü\n• Akşam yürüyüşü hem adım hem uyku kalitesini artırır`;
     }

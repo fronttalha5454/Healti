@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { generateBodyAnalysis, getMeasurementComparison, estimateTimeToTarget } from './bodyAnalysis';
-import type { Measurement, WeightLog, WorkoutLog } from '../types';
+import type { Measurement, WeightLog, WorkoutLog } from '../../types';
 
 describe('bodyAnalysis', () => {
   describe('generateBodyAnalysis', () => {

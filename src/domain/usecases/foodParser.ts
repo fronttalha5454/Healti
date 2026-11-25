@@ -11,7 +11,7 @@
  * All estimates are approximate and clearly labeled as such.
  */
 
-import { FOODS, calculateFoodCalories, searchFoods, type Food } from '../data/foods';
+import { FOODS, calculateFoodCalories, searchFoods, type Food } from '../../infrastructure/data/data/foods';
 
 export interface ParsedFood {
   name: string;

@@ -1,15 +1,15 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { useNotificationStore } from '../store/notificationStore';
+import { useNotificationStore } from '../../presentation/store/notificationStore';
 import type {
   NotificationChannelConfig,
   NotificationType,
   ChannelImportance,
-} from '../types';
+} from '../../types';
 import {
   DEFAULT_CHANNEL_CONFIGS,
   CHANNEL_IMPORTANCE_LABELS,
   NOTIFICATION_CHANNEL_META,
-} from '../types';
+} from '../../types';
 
 describe('NotificationChannelConfig types', () => {
   it('has default configs for all 8 notification types', () => {

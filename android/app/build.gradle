@@ -27,12 +27,27 @@ android {
         // Enable multidex support
         multiDexEnabled true
     }
+    // Release signing: values come from android/keystore.properties (gitignored)
+    // or from environment variables. Never commit the keystore or its passwords.
+    def keystorePropsFile = rootProject.file('keystore.properties')
+    def keystoreProps = new Properties()
+    if (keystorePropsFile.exists()) {
+        keystorePropsFile.withInputStream { keystoreProps.load(it) }
+    }
+    def signingValue = { String propKey, String envKey ->
+        keystoreProps.getProperty(propKey) ?: System.getenv(envKey)
+    }
+    def releaseStoreFile = signingValue('storeFile', 'ANDROID_KEYSTORE_PATH')
+    def hasReleaseSigning = releaseStoreFile && file(releaseStoreFile).exists()
+
     signingConfigs {
         release {
-            storeFile file('release-key.jks')
-            storePassword 'fitnessai123'
-            keyAlias 'fitnessai'
-            keyPassword 'fitnessai123'
+            if (hasReleaseSigning) {
+                storeFile file(releaseStoreFile)
+                storePassword signingValue('storePassword', 'ANDROID_KEYSTORE_PASSWORD')
+                keyAlias signingValue('keyAlias', 'ANDROID_KEY_ALIAS')
+                keyPassword signingValue('keyPassword', 'ANDROID_KEY_PASSWORD')
+            }
         }
     }
     buildTypes {
@@ -40,7 +55,9 @@ android {
             // Enable R8 shrinking and optimization (proguard is deprecated)
             minifyEnabled true
             shrinkResources true
-            signingConfig signingConfigs.release
+            if (hasReleaseSigning) {
+                signingConfig signingConfigs.release
+            }
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
         debug {

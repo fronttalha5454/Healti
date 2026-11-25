@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { useNotificationStore, parseTimeToMinutes, isTimeInRange } from '../store/notificationStore';
-import type { NotificationType, NotificationRecord, NotificationStatus } from '../types';
+import { useNotificationStore, parseTimeToMinutes, isTimeInRange } from '../../presentation/store/notificationStore';
+import type { NotificationType, NotificationRecord, NotificationStatus } from '../../types';
 
 // ─── Helpers ───
 

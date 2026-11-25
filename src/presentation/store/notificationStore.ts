@@ -5,11 +5,13 @@ import type {
   NotificationRecord,
   NotificationType,
   NotificationChannelConfig,
+  NotificationStatus,
   DEFAULT_NOTIFICATION_PREFS,
   DEFAULT_CHANNEL_CONFIGS,
-} from '../types';
+} from '../../types';
 
 interface NotificationState {
+  userId: string | null;
   preferences: NotificationPreferences;
   history: NotificationRecord[];
   cooldowns: Record<string, number>; // type -> lastSent timestamp
@@ -28,6 +30,10 @@ interface NotificationState {
   resetChannelConfigs: () => void;
   getChannelConfig: (type: NotificationType) => NotificationChannelConfig;
 
+  // User scoping
+  initWithUser: (userId: string) => void;
+  clearUser: () => void;
+
   // History actions
   addNotification: (record: NotificationRecord) => void;
   markRead: (id: string) => void;
@@ -36,6 +42,8 @@ interface NotificationState {
   clearHistory: () => void;
   getUnreadCount: () => number;
   getRecentNotifications: (limit?: number) => NotificationRecord[];
+  updateNotificationStatus: (id: string, status: NotificationStatus) => void;
+  getNotificationsByStatus: (status: NotificationStatus) => NotificationRecord[];
 
   // Cooldown management
   canSend: (type: NotificationType) => boolean;
@@ -100,6 +108,7 @@ function isTimeInRange(currentMinutes: number, startMinutes: number, endMinutes:
 export const useNotificationStore = create<NotificationState>()(
   persist(
     (set, get) => ({
+      userId: null,
       preferences: DEFAULT_PREFS,
       history: [],
       cooldowns: {},
@@ -150,6 +159,15 @@ export const useNotificationStore = create<NotificationState>()(
         return channelConfigs.find((ch) => ch.id === type) || DEFAULT_CHANNELS.find((ch) => ch.id === type)!;
       },
 
+      initWithUser: (userId) =>
+        set((state) =>
+          state.userId === userId
+            ? state
+            : { userId, history: [], cooldowns: {} }
+        ),
+
+      clearUser: () => set({ userId: null, history: [], cooldowns: {} }),
+
       addNotification: (record) =>
         set((state) => {
           // Prevent duplicate notifications (same type within 5 seconds)
@@ -195,6 +213,16 @@ export const useNotificationStore = create<NotificationState>()(
       getRecentNotifications: (limit = 50) => {
         const { history } = get();
         return history.filter((n) => !n.dismissed).slice(0, limit);
+      },
+
+      updateNotificationStatus: (id, status) =>
+        set((state) => ({
+          history: state.history.map((n) => (n.id === id ? { ...n, status } : n)),
+        })),
+
+      getNotificationsByStatus: (status) => {
+        const { history } = get();
+        return history.filter((n) => n.status === status);
       },
 
       canSend: (type) => {

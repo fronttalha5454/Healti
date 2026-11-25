@@ -6,8 +6,8 @@
  * User must approve any substitution.
  */
 
-import type { Exercise, MuscleGroup } from '../types';
-import { EXERCISES, getExerciseById } from '../data/exercises';
+import type { Exercise, MuscleGroup } from '../../types';
+import { EXERCISES, getExerciseById } from '../../infrastructure/data/data/exercises';
 
 export interface SubstitutionSuggestion {
   exercise: Exercise;

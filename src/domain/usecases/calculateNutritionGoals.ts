@@ -1,4 +1,4 @@
-import type { NutritionPlan, Profile, NutritionGoal } from '../types';
+import type { NutritionPlan, Profile, NutritionGoal } from '../../types';
 
 const ACTIVITY_MULTIPLIERS: Record<Profile['activityLevel'], number> = {
   sedentary: 1.2,

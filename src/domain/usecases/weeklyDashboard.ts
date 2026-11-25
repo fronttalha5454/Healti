@@ -8,9 +8,9 @@
 import type {
   WorkoutPlan, WorkoutLog, FoodEntry, StepEntry,
   HabitLog, DailyHabit, WeeklyDayData,
-} from '../types';
-import type { WaterEntry } from '../store/waterStore';
-import type { SleepEntry } from '../store/sleepStore';
+} from '../../types';
+import type { WaterEntry } from '../../presentation/store/waterStore';
+import type { SleepEntry } from '../../presentation/store/sleepStore';
 import { normalizeDay, getTodayDateString } from './sessionMatcher';
 
 const DAY_NAMES_TR = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
