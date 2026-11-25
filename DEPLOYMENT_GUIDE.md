@@ -23,9 +23,24 @@ The `.gitignore` already excludes:
 - `node_modules/`, `dist/`, `dist-ssr/`
 - `server/service-account.json`, `android/app/google-services.json`
 - Editor files (`.vscode/*`, `.idea/`, `*.suo`)
-- Environment files (`.env`, `.env.local`, `.env.example` is tracked but gitignored values excluded)
+- Environment files (`.env`, `.env.*`, `server/.env`); `.env.example` stays tracked
+- Android signing files (`*.jks`, `*.keystore`, `android/keystore.properties`)
 
-**Your `.env` and `.env.example` files should remain local/not committed** - they contain API keys. The `.env.example` shows the required variables without secret values.
+**Your `.env` must stay local and never be committed** - it contains API keys. `.env.example` lists the required variables without secret values.
+
+### Android release signing
+Release signing values are read from `android/keystore.properties` (gitignored) or from environment variables:
+
+```bash
+cp android/keystore.properties.example android/keystore.properties   # then fill in real values
+# or, e.g. in CI:
+export ANDROID_KEYSTORE_PATH=/path/to/release-key.jks
+export ANDROID_KEYSTORE_PASSWORD=...
+export ANDROID_KEY_ALIAS=...
+export ANDROID_KEY_PASSWORD=...
+```
+
+If no keystore is configured, `assembleRelease` produces an unsigned APK and debug builds work as before.
 
 ### Push to GitHub
 ```bash
