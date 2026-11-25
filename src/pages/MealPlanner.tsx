@@ -1,17 +1,17 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Copy, X, Plus, Trash2, Minus, Cloud } from 'lucide-react';
-import { Card } from '../components/ui/Card';
-import { useUserStore } from '../store/userStore';
-import { useMealPlanStore, PLANNER_SLOTS } from '../store/mealPlanStore';
-import { useNutritionStore } from '../store/nutritionStore';
-import { MealSuggestionCards } from '../components/MealSuggestionCards';
-import { generateMealSuggestions } from '../engine/mealSuggestionEngine';
-import type { MealSuggestion } from '../engine/mealSuggestionEngine';
-import { roundNutrition } from '../store/nutritionStore';
+import { Card } from '../presentation/components/ui/Card';
+import { useUserStore } from '../presentation/store/userStore';
+import { useMealPlanStore, PLANNER_SLOTS } from '../presentation/store/mealPlanStore';
+import { useNutritionStore } from '../presentation/store/nutritionStore';
+import { MealSuggestionCards } from '../presentation/components/MealSuggestionCards';
+import { generateMealSuggestions } from '../domain/usecases/mealSuggestionEngine';
+import type { MealSuggestion } from '../domain/usecases/mealSuggestionEngine';
+import { roundNutrition } from '../presentation/store/nutritionStore';
 import { AddFoodModal } from './Nutrition';
-import { calculateFoodCalories } from '../data/foods';
-import type { Food } from '../data/foods';
+import { calculateFoodCalories } from '../infrastructure/data/data/foods';
+import type { Food } from '../infrastructure/data/data/foods';
 import type { PlannedItem, MealType, Profile } from '../types';
 import { MEAL_TYPE_LABELS } from '../types';
 

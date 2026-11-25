@@ -1,9 +1,9 @@
 import { useNavigate } from 'react-router-dom';
-import { useWorkoutStore } from '../store/workoutStore';
-import { useUserStore } from '../store/userStore';
-import { selectWorkoutProgram } from '../engine/fitness';
-import { getTodaySession, isTodayWorkoutDay, getTodayDateString } from '../engine/sessionMatcher';
-import { Card } from '../components/ui/Card';
+import { useWorkoutStore } from '../presentation/store/workoutStore';
+import { useUserStore } from '../presentation/store/userStore';
+import { selectWorkoutProgram } from '../domain/usecases/fitness';
+import { getTodaySession, isTodayWorkoutDay, getTodayDateString } from '../domain/usecases/sessionMatcher';
+import { Card } from '../presentation/components/ui/Card';
 import { Dumbbell, Clock, ChevronRight, ChevronLeft, CheckCircle2, Flame, Check, BarChart3, Target, TrendingUp, Zap, Calendar, Home, Building2 } from 'lucide-react';
 import { useState, useCallback } from 'react';
 

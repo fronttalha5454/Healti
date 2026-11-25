@@ -1,6 +1,6 @@
-import type { Profile } from '../types';
-import type { FoodEntry } from '../types';
-import { getExerciseById, MUSCLE_GROUP_LABELS } from '../data/exercises';
+import type { Profile } from '../../types';
+import type { FoodEntry } from '../../types';
+import { getExerciseById, MUSCLE_GROUP_LABELS } from '../../infrastructure/data/data/exercises';
 import { findSubstitution } from './exerciseSubstitution';
 
 export interface DailyWorkoutPlan {

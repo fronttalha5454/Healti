@@ -1,9 +1,9 @@
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useNotificationStore } from '../store/notificationStore';
+import { useNotificationStore } from '../presentation/store/notificationStore';
 import { NOTIFICATION_TYPE_LABELS, type NotificationRecord, type NotificationType } from '../types';
-import { Card } from '../components/ui/Card';
-import { Button } from '../components/ui/Button';
+import { Card } from '../presentation/components/ui/Card';
+import { Button } from '../presentation/components/ui/Button';
 import {
   ChevronLeft, Bell, BellOff, Check, CheckCheck, Trash2,
   ChevronRight, Settings, Inbox,

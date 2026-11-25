@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { User, Profile, FitnessGoal, NutritionGoal, Equipment, GoalRegion } from '../types';
+import type { User, Profile, FitnessGoal, NutritionGoal, Equipment, GoalRegion } from '../../types';
 
 interface UserState {
   user: User | null;

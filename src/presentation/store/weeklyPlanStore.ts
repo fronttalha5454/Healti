@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { MealType } from '../types';
+import type { MealType } from '../../types';
 
 // ─── Day Names ───
 

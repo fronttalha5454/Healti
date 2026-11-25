@@ -1,10 +1,10 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useUserStore } from '../store/userStore';
-import { generateCompletePlan } from '../engine/smartPlan';
+import { useUserStore } from '../presentation/store/userStore';
+import { generateCompletePlan } from '../domain/usecases/smartPlan';
 import type { Profile } from '../types';
-import { Card } from '../components/ui/Card';
-import { Button } from '../components/ui/Button';
+import { Card } from '../presentation/components/ui/Card';
+import { Button } from '../presentation/components/ui/Button';
 import { ChevronLeft, Plus, X, ShoppingCart, Check, Copy, Trash2, Search, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
 
 interface ShoppingItem {

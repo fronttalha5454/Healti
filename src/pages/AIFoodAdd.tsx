@@ -11,12 +11,12 @@
 
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useNutritionStore } from '../store/nutritionStore';
-import { parseFoodDescription, sumParsedFoods, type ParsedFood } from '../engine/foodParser';
-import { calculateFoodCalories, searchFoods, FOODS, type Food } from '../data/foods';
-import { getAIServiceStatus } from '../engine/aiService';
-import { Card } from '../components/ui/Card';
-import { Button } from '../components/ui/Button';
+import { useNutritionStore } from '../presentation/store/nutritionStore';
+import { parseFoodDescription, sumParsedFoods, type ParsedFood } from '../domain/usecases/foodParser';
+import { calculateFoodCalories, searchFoods, FOODS, type Food } from '../infrastructure/data/data/foods';
+import { getAIServiceStatus } from '../domain/usecases/aiService';
+import { Card } from '../presentation/components/ui/Card';
+import { Button } from '../presentation/components/ui/Button';
 import type { MealType, FoodEntry } from '../types';
 import { MEAL_TYPE_LABELS } from '../types';
 import {

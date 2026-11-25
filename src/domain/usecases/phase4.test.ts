@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { generateSmartCoachResponse, type NutritionContext, type CompletePlan } from './smartPlan';
-import { getAdaptiveSuggestion } from '../store/recoveryStore';
-import { getExerciseById, MUSCLE_GROUP_LABELS } from '../data/exercises';
+import { getAdaptiveSuggestion } from '../../presentation/store/recoveryStore';
+import { getExerciseById, MUSCLE_GROUP_LABELS } from '../../infrastructure/data/data/exercises';
 import { findSubstitution } from './exerciseSubstitution';
 
 // ═══════════════════════════════════════════════════════════

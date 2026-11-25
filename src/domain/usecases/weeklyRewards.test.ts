@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { calculateBadges, generateWeeklyRewards } from './weeklyRewards';
-import type { WorkoutLog, FoodEntry, Measurement, WeightLog, HabitLog } from '../types';
+import type { WorkoutLog, FoodEntry, Measurement, WeightLog, HabitLog } from '../../types';
 
 describe('weeklyRewards', () => {
   describe('calculateBadges', () => {

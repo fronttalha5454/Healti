@@ -7,14 +7,14 @@ import { useSleepStore } from '../store/sleepStore';
 import { useHabitsStore } from '../store/habitsStore';
 import { useProgressStore } from '../store/progressStore';
 import { useUserStore } from '../store/userStore';
-import { evaluateNotifications, type NotificationContext } from '../engine/notifications';
+import { evaluateNotifications, type NotificationContext } from '../../domain/usecases/notifications';
 import {
   initializePushNotifications,
   sendLocalNotification,
   isNative,
   getPushToken,
-} from '../services/pushNotificationService';
-import { registerToken, checkBackendHealth, evaluateAndSend } from '../services/pushApi';
+} from '../../services/pushNotificationService';
+import { registerToken, checkBackendHealth, evaluateAndSend } from '../../services/pushApi';
 
 const CHECK_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 

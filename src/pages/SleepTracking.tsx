@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useSleepStore } from '../store/sleepStore';
-import { Card } from '../components/ui/Card';
-import { ProgressRing } from '../components/ui/ProgressRing';
+import { useSleepStore } from '../presentation/store/sleepStore';
+import { Card } from '../presentation/components/ui/Card';
+import { ProgressRing } from '../presentation/components/ui/ProgressRing';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { Moon, ChevronLeft, Plus, X, Star, TrendingUp, TrendingDown, Minus, Target, Clock } from 'lucide-react';
 

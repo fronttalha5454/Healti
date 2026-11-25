@@ -1,20 +1,21 @@
 import { useState } from 'react';
-import { useUserStore } from '../store/userStore';
-import { useWorkoutStore } from '../store/workoutStore';
-import { useNutritionStore } from '../store/nutritionStore';
-import { calculateNutritionTargets, selectWorkoutProgram } from '../engine/fitness';
+import { useUserStore } from '../presentation/store/userStore';
+import { saveUserProfile } from '../services/userProfile';
+import { useWorkoutStore } from '../presentation/store/workoutStore';
+import { useNutritionStore } from '../presentation/store/nutritionStore';
+import { calculateNutritionTargets, selectWorkoutProgram } from '../domain/usecases/fitness';
 import type { Profile, FitnessGoal, NutritionGoal, Equipment, GoalRegion, GoalRegionArea, GoalRegionObjective } from '../types';
 import { GOAL_REGION_LABELS, GOAL_OBJECTIVE_LABELS, FITNESS_GOAL_LABELS } from '../types';
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
-import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
-import { Card } from '../components/ui/Card';
+import { Button } from '../presentation/components/ui/Button';
+import { Input } from '../presentation/components/ui/Input';
+import { Card } from '../presentation/components/ui/Card';
 
 const TOTAL_STEPS = 14;
 
 export function Onboarding() {
   const [step, setStep] = useState(0);
-  const { setUser, setProfile, updateProfile, completeOnboarding } = useUserStore();
+  const { user, setUser, setProfile, updateProfile, completeOnboarding } = useUserStore();
   const { setPlan } = useWorkoutStore();
   const { setPlan: setNutritionPlan } = useNutritionStore();
   const [profile, setLocalProfile] = useState<Partial<Profile>>({
@@ -59,7 +60,8 @@ export function Onboarding() {
   };
 
   const finish = () => {
-    const userId = `user_${Date.now()}`;
+    // The signed-in Firebase user (set by the auth listener in App.tsx)
+    const userId = user?.id ?? `local_${Date.now()}`;
     const fullProfile: Profile = {
       userId,
       age: profile.age || 25,
@@ -93,12 +95,14 @@ export function Onboarding() {
 
     setUser({
       id: userId,
-      email: 'user@fitnessai.com',
-      name: 'Kullanıcı',
-      createdAt: new Date().toISOString(),
+      email: user?.email ?? '',
+      name: user?.name || 'Kullanıcı',
+      createdAt: user?.createdAt ?? new Date().toISOString(),
       onboardingCompleted: true,
     });
     setProfile(fullProfile);
+    // Persist to Firestore (falls back to localStorage when offline)
+    saveUserProfile(userId, fullProfile, true).catch(() => {});
 
     const nutritionPlan = calculateNutritionTargets(fullProfile);
     setNutritionPlan(nutritionPlan);

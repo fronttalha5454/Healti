@@ -8,11 +8,11 @@ import { generateWeeklyWorkoutPlanFromActive } from '../store/weeklyPlanStore';
 import { Card } from './ui/Card';
 import { Button } from './ui/Button';
 import { Dumbbell, Apple, Clock, Plus, X, ChevronRight, Check, Home, Bed, Edit3, Search, Info, Zap } from 'lucide-react';
-import type { MealType } from '../types';
-import { MEAL_TYPE_LABELS } from '../types';
-import { FOODS, searchFoods, calculateFoodCalories, FOOD_CATEGORIES, getMealRelevantFoods } from '../data/foods';
-import type { Food } from '../data/foods';
-import { getTemplatesForMeal, resolveMealTemplate, MEAL_GUIDANCE, type MealTemplate } from '../data/mealTemplates';
+import type { MealType } from '../../types';
+import { MEAL_TYPE_LABELS } from '../../types';
+import { FOODS, searchFoods, calculateFoodCalories, FOOD_CATEGORIES, getMealRelevantFoods } from '../../infrastructure/data/data/foods';
+import type { Food } from '../../infrastructure/data/data/foods';
+import { getTemplatesForMeal, resolveMealTemplate, MEAL_GUIDANCE, type MealTemplate } from '../../infrastructure/data/data/mealTemplates';
 
 type TabType = 'workout' | 'nutrition';
 

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { selectWorkoutProgram } from './fitness';
-import type { Profile } from '../types';
+import type { Profile } from '../../types';
 
 function makeProfile(overrides: Partial<Profile> = {}): Profile {
   return {

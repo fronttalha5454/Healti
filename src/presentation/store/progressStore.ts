@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { WeightLog, Measurement, ProgressPhoto, WeeklyCheckin, AIInsight, WeeklyAIReport } from '../types';
+import type { WeightLog, Measurement, ProgressPhoto, WeeklyCheckin, AIInsight, WeeklyAIReport } from '../../types';
 
 interface MeasurementDiff {
   field: string;

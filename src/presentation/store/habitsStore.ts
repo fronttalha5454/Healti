@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { DailyHabit, HabitLog, StepEntry } from '../types';
+import type { DailyHabit, HabitLog, StepEntry } from '../../types';
 
 interface HabitsState {
   habits: DailyHabit[];

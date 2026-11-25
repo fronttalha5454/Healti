@@ -11,6 +11,13 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
+/** True when the VITE_FIREBASE_* variables are present in the build. */
+export const isFirebaseConfigured = Boolean(firebaseConfig.apiKey && firebaseConfig.projectId);
+
+if (!isFirebaseConfigured) {
+  console.warn('[Firebase] VITE_FIREBASE_* environment variables are missing. Auth will not work.');
+}
+
 // Initialize Firebase (only once)
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 

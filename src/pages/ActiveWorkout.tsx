@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useWorkoutStore } from '../store/workoutStore';
-import { useUserStore } from '../store/userStore';
-import { Card } from '../components/ui/Card';
-import { Button } from '../components/ui/Button';
-import { getExerciseById } from '../data/exercises';
-import { getTodaySession, isTodayWorkoutDay, getTodayCanonicalDay, getDayDisplayName } from '../engine/sessionMatcher';
+import { useWorkoutStore } from '../presentation/store/workoutStore';
+import { useUserStore } from '../presentation/store/userStore';
+import { Card } from '../presentation/components/ui/Card';
+import { Button } from '../presentation/components/ui/Button';
+import { getExerciseById } from '../infrastructure/data/data/exercises';
+import { getTodaySession, isTodayWorkoutDay, getTodayCanonicalDay, getDayDisplayName } from '../domain/usecases/sessionMatcher';
 import { ArrowLeft, Plus, Minus, Check, X, Pause, Play, Timer, ChevronDown, ChevronUp, RefreshCw, BedDouble, Dumbbell } from 'lucide-react';
 
 export function ActiveWorkout() {

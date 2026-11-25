@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { calculateConsistencyScore } from './consistencyScore';
-import type { WorkoutLog, FoodEntry, StepEntry, HabitLog, DailyHabit } from '../types';
-import type { WaterEntry } from '../store/waterStore';
-import type { SleepEntry } from '../store/sleepStore';
+import type { WorkoutLog, FoodEntry, StepEntry, HabitLog, DailyHabit } from '../../types';
+import type { WaterEntry } from '../../presentation/store/waterStore';
+import type { SleepEntry } from '../../presentation/store/sleepStore';
 
 describe('consistencyScore', () => {
   const makeParams = (overrides: Partial<Parameters<typeof calculateConsistencyScore>[0]> = {}) => ({
