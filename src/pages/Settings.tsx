@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useUserStore } from '../store/userStore';
+import { useUserStore } from '../presentation/store/userStore';
 import { signOutUser } from '../services/auth';
 
 export function Settings() {

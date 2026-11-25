@@ -1,13 +1,13 @@
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useUserStore } from '../store/userStore';
-import { useWorkoutStore } from '../store/workoutStore';
-import { useNutritionStore } from '../store/nutritionStore';
-import { useProgressStore } from '../store/progressStore';
-import { useSleepStore } from '../store/sleepStore';
-import { useRecoveryStore } from '../store/recoveryStore';
-import { Card } from '../components/ui/Card';
-import { ProgressRing } from '../components/ui/ProgressRing';
+import { useUserStore } from '../presentation/store/userStore';
+import { useWorkoutStore } from '../presentation/store/workoutStore';
+import { useNutritionStore } from '../presentation/store/nutritionStore';
+import { useProgressStore } from '../presentation/store/progressStore';
+import { useSleepStore } from '../presentation/store/sleepStore';
+import { useRecoveryStore } from '../presentation/store/recoveryStore';
+import { Card } from '../presentation/components/ui/Card';
+import { ProgressRing } from '../presentation/components/ui/ProgressRing';
 import {
   ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Minus,
   Dumbbell, Apple, Scale, Flame, Trophy, AlertTriangle,

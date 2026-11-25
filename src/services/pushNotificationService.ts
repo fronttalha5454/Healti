@@ -209,7 +209,7 @@ async function initializeNativePush(): Promise<void> {
     PushNotifications.addListener('pushNotificationReceived', (notification) => {
       console.log('[Push] Received:', notification);
       // Store in notification center
-      import('../store/notificationStore').then(({ useNotificationStore }) => {
+      import('../presentation/store/notificationStore').then(({ useNotificationStore }) => {
         useNotificationStore.getState().addNotification({
           id: `push_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
           type: 'progress',

@@ -9,7 +9,7 @@ import type {
   NotificationType,
   NotificationPriority,
   NotificationPreferences,
-} from '../types';
+} from '../../types';
 
 // ─── Data interfaces (subset of store data needed for evaluation) ───
 

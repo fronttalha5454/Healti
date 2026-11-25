@@ -25,9 +25,9 @@
  * ────────────────────────────────────────────────────────────────
  */
 
-import type { WorkoutPlan, WorkoutLog, FoodEntry, StepEntry, HabitLog, DailyHabit } from '../types';
-import type { WaterEntry } from '../store/waterStore';
-import type { SleepEntry } from '../store/sleepStore';
+import type { WorkoutPlan, WorkoutLog, FoodEntry, StepEntry, HabitLog, DailyHabit } from '../../types';
+import type { WaterEntry } from '../../presentation/store/waterStore';
+import type { SleepEntry } from '../../presentation/store/sleepStore';
 
 export interface ConsistencyComponent {
   label: string;

@@ -9,8 +9,8 @@
  */
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { PlannedItem, DayMealPlan, MealType } from '../types';
-import { saveDayPlan, removeDayPlan, loadWeekPlans } from '../services/weeklyMealPlanService';
+import type { PlannedItem, DayMealPlan, MealType } from '../../types';
+import { saveDayPlan, removeDayPlan, loadWeekPlans } from '../../services/weeklyMealPlanService';
 import { roundNutrition } from './nutritionStore';
 
 export const PLANNER_SLOTS: MealType[] = ['breakfast', 'lunch', 'afternoon_snack', 'dinner'];

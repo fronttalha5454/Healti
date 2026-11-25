@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { EXERCISES, MUSCLE_GROUP_LABELS } from '../data/exercises';
-import { useWorkoutStore } from '../store/workoutStore';
-import { useUserStore } from '../store/userStore';
-import { findSubstitution, type SubstitutionSuggestion } from '../engine/exerciseSubstitution';
-import { Card } from '../components/ui/Card';
-import { Button } from '../components/ui/Button';
+import { EXERCISES, MUSCLE_GROUP_LABELS } from '../infrastructure/data/data/exercises';
+import { useWorkoutStore } from '../presentation/store/workoutStore';
+import { useUserStore } from '../presentation/store/userStore';
+import { findSubstitution, type SubstitutionSuggestion } from '../domain/usecases/exerciseSubstitution';
+import { Card } from '../presentation/components/ui/Card';
+import { Button } from '../presentation/components/ui/Button';
 import type { WorkoutExercise } from '../types';
 import { Search, ChevronDown, ChevronUp, ChevronLeft, Plus, Check, X, ArrowLeftRight, Home, Building2 } from 'lucide-react';
 

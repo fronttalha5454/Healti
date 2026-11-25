@@ -11,14 +11,14 @@ import { useNutritionStore } from '../store/nutritionStore';
 import { useWaterStore } from '../store/waterStore';
 import { useSleepStore } from '../store/sleepStore';
 import { useHabitsStore } from '../store/habitsStore';
-import { generateWeeklyData, getWeeklySummary } from '../engine/weeklyDashboard';
+import { generateWeeklyData, getWeeklySummary } from '../../domain/usecases/weeklyDashboard';
 import { Card } from './ui/Card';
 import { ProgressRing } from './ui/ProgressRing';
 import {
   CheckCircle2, Dumbbell, Apple, Droplets, Moon, Footprints,
   CheckSquare, XCircle, Minus,
 } from 'lucide-react';
-import type { WeeklyDayData } from '../types';
+import type { WeeklyDayData } from '../../types';
 
 export function WeeklyDashboard() {
   const { activePlan, workoutLogs } = useWorkoutStore();

@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useUserStore } from '../store/userStore';
-import { useWorkoutStore } from '../store/workoutStore';
-import { useNutritionStore } from '../store/nutritionStore';
-import { useProgressStore } from '../store/progressStore';
-import { Card } from '../components/ui/Card';
-import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
-import { calculateBMR, calculateTDEE, calculateNutritionTargets } from '../engine/fitness';
+import { useUserStore } from '../presentation/store/userStore';
+import { useWorkoutStore } from '../presentation/store/workoutStore';
+import { useNutritionStore } from '../presentation/store/nutritionStore';
+import { useProgressStore } from '../presentation/store/progressStore';
+import { Card } from '../presentation/components/ui/Card';
+import { Button } from '../presentation/components/ui/Button';
+import { Input } from '../presentation/components/ui/Input';
+import { calculateBMR, calculateTDEE, calculateNutritionTargets } from '../domain/usecases/fitness';
 import type { Profile, FitnessGoal, NutritionGoal } from '../types';
 import {
   User, Target, Dumbbell, Apple, Bell, Shield, LogOut,

@@ -1,4 +1,4 @@
-import type { MealSuggestion } from '../engine/mealSuggestionEngine';
+import type { MealSuggestion } from '../../domain/usecases/mealSuggestionEngine';
 import { Card } from './ui/Card';
 import { Button } from './ui/Button';
 import { Plus, Utensils, Apple, Leaf, Zap, Star } from 'lucide-react';
