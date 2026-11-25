@@ -9,19 +9,19 @@
  * All estimates are clearly marked as approximate.
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useNutritionStore } from '../store/nutritionStore';
-import { parseFoodDescription, sumParsedFoods, type ParsedFood } from '../engine/foodParser';
-import { calculateFoodCalories, searchFoods, FOODS, type Food } from '../data/foods';
-import { getAIServiceStatus } from '../engine/aiService';
-import { Card } from '../components/ui/Card';
-import { Button } from '../components/ui/Button';
+import { useNutritionStore } from '../presentation/store/nutritionStore';
+import { parseFoodDescription, sumParsedFoods, type ParsedFood } from '../domain/usecases/foodParser';
+import { calculateFoodCalories, searchFoods, FOODS, type Food } from '../infrastructure/data/data/foods';
+import { getAIServiceStatus, analyzeFoodPhoto, fileToResizedDataUrl, type AIPhotoAnalysisResult } from '../domain/usecases/aiService';
+import { Card } from '../presentation/components/ui/Card';
+import { Button } from '../presentation/components/ui/Button';
 import type { MealType, FoodEntry } from '../types';
 import { MEAL_TYPE_LABELS } from '../types';
 import {
   ArrowLeft, Send, Sparkles, Plus, X, Check, Camera,
-  Edit3, AlertTriangle, Search, ChevronRight, Info,
+  Edit3, AlertTriangle, Search, ChevronRight, Info, Loader2,
 } from 'lucide-react';
 
 const MEAL_TYPES: { value: MealType; label: string; icon: string }[] = [
@@ -34,6 +34,38 @@ const MEAL_TYPES: { value: MealType; label: string; icon: string }[] = [
 ];
 
 type ViewMode = 'input' | 'preview' | 'custom' | 'photo';
+
+/**
+ * AI'dan gelen porsiyon değerlerini ParsedFood'a çevirir. 100 g değerleri
+ * porsiyondan türetilir; böylece kullanıcı gramı değiştirince makrolar ölçeklenir.
+ */
+function photoFoodToParsed(f: AIPhotoAnalysisResult['foods'][number], i: number): ParsedFood {
+  const grams = Math.max(1, f.estimatedGrams);
+  const per100 = (v: number) => Math.round((v * 100 / grams) * 10) / 10;
+  const food: Food = {
+    id: `ai_photo_${Date.now()}_${i}`,
+    name: f.name,
+    nameTr: f.nameTr,
+    category: 'snack',
+    per100g: { calories: per100(f.calories), protein: per100(f.protein), carbs: per100(f.carbs), fat: per100(f.fat) },
+    commonPortions: [],
+    isCustom: true,
+  };
+  return {
+    name: f.name,
+    nameTr: f.nameTr,
+    food,
+    quantity: 1,
+    unit: 'porsiyon',
+    grams,
+    calories: f.calories,
+    protein: f.protein,
+    carbs: f.carbs,
+    fat: f.fat,
+    confidence: f.confidence,
+    isEstimate: true,
+  };
+}
 
 export function AIFoodAdd() {
   const navigate = useNavigate();
@@ -56,6 +88,39 @@ export function AIFoodAdd() {
 
   // Photo analysis status
   const aiStatus = getAIServiceStatus();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [photoDataUrl, setPhotoDataUrl] = useState<string | null>(null);
+  const [photoHint, setPhotoHint] = useState('');
+  const [photoLoading, setPhotoLoading] = useState(false);
+  const [photoError, setPhotoError] = useState<string | null>(null);
+
+  const handlePhotoSelected = async (file: File | undefined) => {
+    if (!file) return;
+    setPhotoError(null);
+    try {
+      setPhotoDataUrl(await fileToResizedDataUrl(file));
+    } catch {
+      setPhotoError('Görsel okunamadı. Başka bir fotoğraf dene.');
+    }
+  };
+
+  const handleAnalyzePhoto = async () => {
+    if (!photoDataUrl) return;
+    setPhotoLoading(true);
+    setPhotoError(null);
+    const result = await analyzeFoodPhoto(photoDataUrl, photoHint.trim() || undefined);
+    setPhotoLoading(false);
+    if (!result.success) {
+      setPhotoError(result.error || 'Fotoğraf analiz edilemedi.');
+      return;
+    }
+    if (result.foods.length === 0) {
+      setPhotoError(result.note || 'Fotoğrafta yiyecek bulunamadı.');
+      return;
+    }
+    setParsedFoods(result.foods.map(photoFoodToParsed));
+    setView('preview');
+  };
 
   // Parse input
   const handleParse = () => {
@@ -474,7 +539,7 @@ export function AIFoodAdd() {
                   <p className="text-sm font-medium text-text-secondary mb-1">Fotoğraf analizi şu anda kullanılamıyor</p>
                   <p className="text-xs text-text-muted mb-4 leading-relaxed">
                     Bu özellik için bir yapay zeka servisi yapılandırılmamış.
-                   照片analiz-api yapılandırıldığında bu özellik aktif olacak.
+                    AI sunucusu bağlandığında bu özellik aktif olacak.
                   </p>
                   <div className="bg-surface rounded-xl p-3 text-left">
                     <p className="text-[11px] text-text-secondary leading-relaxed">
@@ -491,16 +556,53 @@ export function AIFoodAdd() {
               </Card>
             ) : (
               <Card variant="elevated">
-                <div className="text-center py-8">
-                  <Camera size={40} className="text-accent mx-auto mb-3" />
-                  <p className="text-sm font-medium text-text-secondary">Fotoğraf yükleyin</p>
-                  <p className="text-xs text-text-muted mt-1 mb-4">
-                    AI yemeği analiz edecek ve besin değerlerini tahmin edecek
-                  </p>
-                  <Button fullWidth onClick={() => setView('input')}>
-                    Fotoğraf Seç
-                  </Button>
-                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  className="hidden"
+                  onChange={(e) => { handlePhotoSelected(e.target.files?.[0]); e.target.value = ''; }}
+                />
+                {photoDataUrl ? (
+                  <div className="space-y-3">
+                    <img src={photoDataUrl} alt="Yemek fotoğrafı" className="w-full max-h-72 object-cover rounded-xl" />
+                    <input
+                      type="text"
+                      value={photoHint}
+                      onChange={(e) => setPhotoHint(e.target.value)}
+                      placeholder="İsteğe bağlı not (ör. yağsız pişirildi, yarım porsiyon)"
+                      className="w-full bg-surface/50 border border-border rounded-xl px-3 py-2 text-xs text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    />
+                    {photoError && (
+                      <p className="text-[11px] text-danger">{photoError}</p>
+                    )}
+                    <div className="flex gap-2">
+                      <Button variant="secondary" fullWidth disabled={photoLoading} onClick={() => fileInputRef.current?.click()}>
+                        Başka Fotoğraf
+                      </Button>
+                      <Button fullWidth disabled={photoLoading} onClick={handleAnalyzePhoto}>
+                        {photoLoading
+                          ? <><Loader2 size={16} className="mr-2 animate-spin" />Analiz ediliyor...</>
+                          : <><Sparkles size={16} className="mr-2" />Analiz Et</>}
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <Camera size={40} className="text-accent mx-auto mb-3" />
+                    <p className="text-sm font-medium text-text-secondary">Fotoğraf çek veya seç</p>
+                    <p className="text-xs text-text-muted mt-1 mb-4">
+                      Yapay zeka yemeği tanıyıp porsiyon ve besin değerlerini tahmin edecek. Kaydetmeden önce düzenleyebilirsin.
+                    </p>
+                    {photoError && (
+                      <p className="text-[11px] text-danger mb-3">{photoError}</p>
+                    )}
+                    <Button fullWidth onClick={() => fileInputRef.current?.click()}>
+                      Fotoğraf Seç
+                    </Button>
+                  </div>
+                )}
               </Card>
             )}
           </div>

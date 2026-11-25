@@ -19,6 +19,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { readFileSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { createAIRouter, isAIConfigured } from './aiProxy.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -105,7 +106,11 @@ interface EvaluateAndSendRequest {
 // ─── Express App ───
 
 const app = express();
+// Render/Railway gibi bir ters proxy arkasında doğru istemci IP'si için (hız sınırı)
+app.set('trust proxy', 1);
 app.use(cors());
+// AI uç noktaları kendi (daha büyük) JSON gövde sınırını kullanır, bu yüzden genel parser'dan önce bağlanır.
+app.use('/api/ai', createAIRouter());
 app.use(express.json());
 
 const PORT = process.env.PORT || 3001;
@@ -116,6 +121,7 @@ app.get('/api/health', (_req, res) => {
   res.json({
     status: 'ok',
     firebase: firebaseInitialized,
+    ai: isAIConfigured(),
     tokensRegistered: deviceTokens.size,
     timestamp: new Date().toISOString(),
   });

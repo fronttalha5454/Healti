@@ -116,3 +116,28 @@ For production, consider:
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `PORT` | `3001` | Server port |
+
+## AI Koç ve Fotoğrafla Yemek Tanıma (Claude)
+
+Uygulama Claude API'ye doğrudan bağlanmaz. İstekler bu sunucudaki `/api/ai/*`
+uç noktalarına gelir, sunucu da Claude'a iletir. Böylece API anahtarı APK'nın içine
+hiç girmez.
+
+| Uç nokta | Ne yapar |
+|---|---|
+| `GET /api/ai/status` | AI açık mı, hangi model |
+| `POST /api/ai/coach` | `{ messages: [{role, content}], context }` → `{ content }` |
+| `POST /api/ai/food-photo` | `{ image: "data:image/jpeg;base64,...", hint? }` → `{ success, foods: [...] }` |
+
+Kurulum:
+
+1. `server/.env` içine `ANTHROPIC_API_KEY` ekle (bkz. `.env.example`).
+2. Sunucuyu başlat: `npm run dev` (veya yayında `npm run build && npm start`).
+3. Uygulamanın `.env` dosyasına `VITE_AI_API_URL=https://sunucu-adresin` ekle ve uygulamayı yeniden derle.
+
+Sunucuya ulaşılamazsa AI Koç otomatik olarak yerel kural tabanlı motora döner,
+fotoğraf analizi ise hata mesajı gösterir.
+
+Koruma: IP başına hız sınırı (`AI_RATE_LIMIT_PER_MIN`) ve isteğe bağlı
+`AI_CLIENT_TOKEN`. Gerçek kullanıcı girişi (Firebase Auth) eklendiğinde bu uç
+noktalar kullanıcı kimliğiyle korunmalı; uygulama jetonu APK'dan çıkarılabilir.
