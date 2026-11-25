@@ -1,3 +1,4 @@
+import { toLocalDateString } from '../utils/date';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useNutritionStore } from '../presentation/store/nutritionStore';
@@ -37,7 +38,7 @@ export function Nutrition() {
   const [selectedMeal, setSelectedMeal] = useState<string>('lunch');
   const [showWaterPanel, setShowWaterPanel] = useState(false);
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = toLocalDateString();
   const dailyTotals = getDailyTotals(today);
   const todayEntries = getEntriesForDate(today);
   const todayWater = getWaterTotal(today);

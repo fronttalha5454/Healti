@@ -1,3 +1,4 @@
+import { toLocalDateString } from '../utils/date';
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSleepStore } from '../presentation/store/sleepStore';
@@ -15,7 +16,7 @@ export function SleepTracking() {
   const [quality, setQuality] = useState(3);
   const [notes, setNotes] = useState('');
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = toLocalDateString();
   const todaySleep = entries.find((e) => e.date === today);
   const weeklyAvg = getWeeklyAverage(7);
   const weeklyEntries = getWeeklyEntries(7);
@@ -28,7 +29,7 @@ export function SleepTracking() {
     for (let i = 6; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
-      const dateStr = d.toISOString().split('T')[0];
+      const dateStr = toLocalDateString(d);
       const entry = entries.find((e) => e.date === dateStr);
       const dayNames = ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt'];
       days.push({

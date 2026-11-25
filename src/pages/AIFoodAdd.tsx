@@ -9,6 +9,7 @@
  * All estimates are clearly marked as approximate.
  */
 
+import { toLocalDateString } from '../utils/date';
 import { useState, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useNutritionStore } from '../presentation/store/nutritionStore';
@@ -70,7 +71,7 @@ function photoFoodToParsed(f: AIPhotoAnalysisResult['foods'][number], i: number)
 export function AIFoodAdd() {
   const navigate = useNavigate();
   const { addFood } = useNutritionStore();
-  const today = new Date().toISOString().split('T')[0];
+  const today = toLocalDateString();
 
   const [view, setView] = useState<ViewMode>('input');
   const [input, setInput] = useState('');

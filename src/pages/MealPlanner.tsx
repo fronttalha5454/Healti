@@ -1,3 +1,4 @@
+import { toLocalDateString } from '../utils/date';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Copy, X, Plus, Trash2, Minus, Cloud } from 'lucide-react';
@@ -18,7 +19,7 @@ import { MEAL_TYPE_LABELS } from '../types';
 // ─── Date helpers (same convention as Nutrition page) ───
 
 function formatDate(date: Date): string {
-  return date.toISOString().split('T')[0];
+  return toLocalDateString(date);
 }
 
 function getWeekDays(centerDate: Date): { date: string; dayShort: string; dayNum: number; isToday: boolean }[] {

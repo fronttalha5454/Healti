@@ -170,7 +170,7 @@ export const EXERCISES: Exercise[] = [
     equipment: ['cable'],
     difficulty: 'beginner',
     environment: 'gym',
-    formTips: ['Yüksek pollü tut', 'Yüzüne doğru çek', 'Omuz外旋 yap'],
+    formTips: ['Yüksek pollü tut', 'Yüzüne doğru çek', 'Omzunu dışa döndür'],
     description: 'Arka omuz ve postür hareketi',
     category: 'isolation',
   },

@@ -19,6 +19,7 @@
  * ────────────────────────────────────────────────────────────────
  */
 
+import { toLocalDateString } from '../../utils/date';
 import { useMemo } from 'react';
 import { useWorkoutStore } from '../store/workoutStore';
 import { useNutritionStore } from '../store/nutritionStore';
@@ -51,8 +52,8 @@ export function WeeklyConsistencyScore() {
   const weekStart = new Date(today);
   weekStart.setDate(today.getDate() - 6);
   weekStart.setHours(0, 0, 0, 0);
-  const weekStartStr = weekStart.toISOString().split('T')[0];
-  const todayStr = today.toISOString().split('T')[0];
+  const weekStartStr = toLocalDateString(weekStart);
+  const todayStr = toLocalDateString(today);
 
   const components = useMemo((): ConsistencyComponent[] => {
     const daysElapsed = Math.min(7, Math.floor((today.getTime() - weekStart.getTime()) / (24 * 60 * 60 * 1000)) + 1);

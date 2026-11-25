@@ -1,3 +1,4 @@
+import { toLocalDateString } from '../utils/date';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUserStore } from '../presentation/store/userStore';
@@ -33,11 +34,11 @@ export function WeeklyReport() {
     for (let i = 0; i < 7; i++) {
       const d = new Date(start);
       d.setDate(d.getDate() + i);
-      dayList.push(d.toISOString().split('T')[0]);
+      dayList.push(toLocalDateString(d));
     }
     return {
-      weekStart: start.toISOString().split('T')[0],
-      weekEnd: end.toISOString().split('T')[0],
+      weekStart: toLocalDateString(start),
+      weekEnd: toLocalDateString(end),
       days: dayList,
     };
   }, []);
@@ -277,7 +278,7 @@ export function WeeklyReport() {
               const dayCal = dayEntries.reduce((s, e) => s + e.calories, 0);
               const dayProt = dayEntries.reduce((s, e) => s + e.protein, 0);
               const daySleep = sleepEntries.find((s) => s.date === day);
-              const isToday = day === new Date().toISOString().split('T')[0];
+              const isToday = day === toLocalDateString();
 
               const calTarget = nutritionPlan?.calories || 2000;
               const protTarget = nutritionPlan?.protein || 150;

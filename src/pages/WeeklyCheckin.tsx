@@ -1,3 +1,4 @@
+import { toLocalDateString } from '../utils/date';
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProgressStore } from '../presentation/store/progressStore';
@@ -32,10 +33,10 @@ export function WeeklyCheckin() {
   const [difficulty, setDifficulty] = useState(5);
   const [notes, setNotes] = useState('');
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = toLocalDateString();
   const weekAgo = new Date();
   weekAgo.setDate(weekAgo.getDate() - 7);
-  const weekStart = weekAgo.toISOString().split('T')[0];
+  const weekStart = toLocalDateString(weekAgo);
 
   const weekWorkouts = workoutLogs.filter((l) => new Date(l.date) >= weekAgo);
   const avgRpe = weekWorkouts.length > 0
