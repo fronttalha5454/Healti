@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUserStore } from '../presentation/store/userStore';
+import { signOutUser } from '../services/auth';
 import { useWorkoutStore } from '../presentation/store/workoutStore';
 import { useNutritionStore } from '../presentation/store/nutritionStore';
 import { useProgressStore } from '../presentation/store/progressStore';
@@ -42,8 +43,9 @@ export function Profile() {
 
   const handleLogout = () => {
     if (confirm('Çıkış yapmak istediğine emin misin? Tüm veriler cihazda kalır.')) {
-      logout();
-      window.location.reload();
+      // Signing out of Firebase triggers the auth listener in App.tsx,
+      // which clears the local session and shows the login screen.
+      signOutUser().catch(() => {}).finally(() => logout());
     }
   };
 

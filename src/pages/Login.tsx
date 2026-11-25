@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { signInWithEmail, validateEmail, validatePassword } from '../services/auth';
+import { isFirebaseConfigured } from '../services/firebase';
 import { Eye, EyeOff } from 'lucide-react';
 import healtiLogo from '../assets/healti-logo.png';
 
@@ -47,6 +48,14 @@ export function Login() {
           <h1 className="text-2xl font-bold text-gradient mb-1">HEALTI</h1>
           <p className="text-text-secondary text-sm">Tekrar hoş geldin</p>
         </div>
+
+        {!isFirebaseConfigured && (
+          <div className="mb-4 p-3 rounded-xl bg-warning/10 border border-warning/20">
+            <p className="text-xs text-warning">
+              Firebase yapılandırması eksik. .env dosyasına VITE_FIREBASE_* değerlerini ekleyin.
+            </p>
+          </div>
+        )}
 
         {/* Error */}
         {error && (

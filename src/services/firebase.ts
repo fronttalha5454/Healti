@@ -11,8 +11,21 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-// Initialize Firebase (only once)
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+/** True when the VITE_FIREBASE_* variables are present in the build. */
+export const isFirebaseConfigured = Boolean(firebaseConfig.apiKey && firebaseConfig.projectId);
+
+if (!isFirebaseConfigured) {
+  console.warn('[Firebase] VITE_FIREBASE_* environment variables are missing. Auth will not work.');
+}
+
+// Initialize Firebase (only once). With missing config, use placeholders so
+// getAuth() doesn't throw at import time and the app can still show the
+// login screen with a configuration warning.
+const app = getApps().length === 0
+  ? initializeApp(isFirebaseConfigured
+      ? firebaseConfig
+      : { ...firebaseConfig, apiKey: 'missing-api-key', projectId: 'missing-project-id' })
+  : getApp();
 
 // Export Firebase Auth & Firestore
 export const auth = getAuth(app);
