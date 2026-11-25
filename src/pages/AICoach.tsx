@@ -11,9 +11,19 @@ import { Card } from '../presentation/components/ui/Card';
 import { generateSmartCoachResponse, generateCompletePlan, type NutritionContext } from '../domain/usecases/smartPlan';
 import { getExerciseById, EXERCISES, MUSCLE_GROUP_LABELS } from '../infrastructure/data/data/exercises';
 import { findSubstitution } from '../domain/usecases/exerciseSubstitution';
+import { getAIResponse, getAIServiceStatus } from '../domain/usecases/aiService';
 import { Send, Bot, User, ArrowLeft, Dumbbell, Apple, Calendar, TrendingUp, Droplets, Coffee, Beef, Cookie, Pill, Moon, Activity, CheckCircle2, MessageCircle } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { ChatMessage } from '../types';
+
+/** **kalın** işaretlerini <strong> olarak gösterir (yerel motor ve Claude aynı biçimi kullanır). */
+function renderBold(text: string) {
+  return text.split(/(\*\*[^*]+\*\*)/g).map((part, i) =>
+    part.startsWith('**') && part.endsWith('**') && part.length > 4
+      ? <strong key={i}>{part.slice(2, -2)}</strong>
+      : part,
+  );
+}
 
 export function AICoach() {
   const navigate = useNavigate();
@@ -31,6 +41,8 @@ export function AICoach() {
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const aiEnabled = getAIServiceStatus() === 'available';
+  const [usingLocalFallback, setUsingLocalFallback] = useState(!aiEnabled);
 
   const plan = useMemo(() => profile ? generateCompletePlan(profile) : null, [profile]);
 
@@ -134,8 +146,54 @@ export function AICoach() {
     scrollToBottom();
   }, [messages]);
 
-  const handleSend = () => {
-    if (!input.trim()) return;
+  // Claude'a gönderilecek kısa ve yapılandırılmış kullanıcı verisi
+  const buildAIContext = (): Record<string, unknown> => ({
+    tarih: today,
+    ekran: screenFrom || null,
+    profil: profile ? {
+      yas: profile.age,
+      cinsiyet: profile.gender,
+      boyCm: profile.height,
+      kiloKg: profile.weight,
+      hedefKilo: profile.targetWeight ?? null,
+      hedef: profile.goal,
+      beslenmeHedefi: profile.nutritionGoal,
+      aktiviteSeviyesi: profile.activityLevel,
+      fitnessSeviyesi: profile.fitnessLevel,
+      ortam: profile.environment,
+      ekipman: profile.equipment,
+      haftalikAntrenmanGunu: profile.trainingDaysPerWeek,
+      ogunSayisi: profile.mealsPerDay,
+      vegan: profile.isVegan,
+      alerjiler: profile.allergies,
+      sevmedikleri: profile.dislikedFoods,
+      hedefBolgeler: profile.goalRegions,
+    } : null,
+    bugunBeslenme: nutritionContext,
+    bugunOgunler: enhancedContext.mealBreakdown,
+    bugunAntrenmanYapildi: todayWorkoutDone,
+    planlananAntrenman: enhancedContext.todayWorkoutSession ? {
+      odak: enhancedContext.todayWorkoutSession.focus,
+      sureDk: enhancedContext.todayWorkoutSession.estimatedTime,
+      hareketler: enhancedContext.todayWorkoutSession.exercises.map(e => `${e.name} ${e.sets}x${e.reps}`),
+    } : null,
+    buHaftaAntrenmanSayisi: enhancedContext.weekWorkoutCount,
+    sonKilo: enhancedContext.latestWeight,
+    kiloTrendi30Gun: enhancedContext.weightTrend,
+    uyku: enhancedContext.sleepEntry ?? null,
+    toparlanma: enhancedContext.recoveryEntry ?? null,
+    haftalikToparlanmaOrt: enhancedContext.weeklyRecoveryAvg,
+    adim: enhancedContext.steps,
+    aliskanliklar: { tamamlanan: enhancedContext.habitsCompleted, toplam: enhancedContext.habitsTotal },
+  });
+
+  const localResponse = (text: string) => {
+    const contextWithScreen = { ...enhancedContext, screen: screenFrom };
+    return generateSmartCoachResponse(text, profile, plan, nutritionContext, contextWithScreen);
+  };
+
+  const handleSend = async () => {
+    if (!input.trim() || isTyping) return;
 
     const userMsg: ChatMessage = {
       id: `msg_${Date.now()}`,
@@ -144,22 +202,37 @@ export function AICoach() {
       timestamp: new Date().toISOString(),
     };
 
-    setMessages((prev) => [...prev, userMsg]);
+    const history = [...messages, userMsg];
+    setMessages(history);
     setInput('');
     setIsTyping(true);
 
-    setTimeout(() => {
-      const contextWithScreen = { ...enhancedContext, screen: screenFrom };
-      const response = generateSmartCoachResponse(userMsg.content, profile, plan, nutritionContext, contextWithScreen);
-      const aiMsg: ChatMessage = {
-        id: `msg_${Date.now() + 1}`,
-        role: 'assistant',
-        content: response,
-        timestamp: new Date().toISOString(),
-      };
-      setMessages((prev) => [...prev, aiMsg]);
-      setIsTyping(false);
-    }, 800 + Math.random() * 1200);
+    let content = '';
+    if (aiEnabled) {
+      // İlk mesaj (karşılama) yerel şablon; geçmişten çıkarılır.
+      const turns = history.slice(1).map(m => ({ role: m.role, content: m.content }));
+      const ai = await getAIResponse(turns, buildAIContext());
+      if (ai.source === 'api' && ai.content) {
+        content = ai.content;
+        setUsingLocalFallback(false);
+      } else {
+        console.warn('[AICoach] AI servisi yanıt vermedi, yerel motora geçiliyor:', ai.error);
+        setUsingLocalFallback(true);
+      }
+    } else {
+      // Yerel motor anında yanıt verir; doğal görünmesi için kısa bir gecikme.
+      await new Promise(r => setTimeout(r, 600));
+    }
+    if (!content) content = localResponse(userMsg.content);
+
+    const aiMsg: ChatMessage = {
+      id: `msg_${Date.now() + 1}`,
+      role: 'assistant',
+      content,
+      timestamp: new Date().toISOString(),
+    };
+    setMessages((prev) => [...prev, aiMsg]);
+    setIsTyping(false);
   };
 
   // Screen-specific quick questions based on where user came from
@@ -226,8 +299,10 @@ export function AICoach() {
           <div>
             <h1 className="text-sm font-semibold text-text">AI Koç</h1>
             <div className="flex items-center gap-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-              <p className="text-[10px] text-accent">Çevrimiçi</p>
+              <div className={`w-1.5 h-1.5 rounded-full ${usingLocalFallback ? 'bg-warning' : 'bg-accent animate-pulse'}`} />
+              <p className={`text-[10px] ${usingLocalFallback ? 'text-warning' : 'text-accent'}`}>
+                {usingLocalFallback ? 'Yerel motor (çevrimdışı)' : 'Yapay zeka · Claude'}
+              </p>
             </div>
           </div>
           {/* Quick nutrition status */}
@@ -262,7 +337,7 @@ export function AICoach() {
                   : 'bg-surface-card border border-border-light rounded-bl-md'
               }`}
             >
-              <p className="text-sm leading-relaxed whitespace-pre-line">{msg.content}</p>
+              <p className="text-sm leading-relaxed whitespace-pre-line">{renderBold(msg.content)}</p>
             </div>
             {msg.role === 'user' && (
               <div className="w-7 h-7 rounded-lg bg-surface-card flex items-center justify-center flex-shrink-0 mt-1">
@@ -316,8 +391,8 @@ export function AICoach() {
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-            placeholder="Sorunu yaz... (ne yesem, protein, kalori, su...)"
+            onKeyDown={(e) => e.key === 'Enter' && !e.nativeEvent.isComposing && handleSend()}
+            placeholder={usingLocalFallback ? "Sorunu yaz... (ne yesem, protein, kalori, su...)" : "Koçuna istediğini sor..."}
             className="flex-1 bg-transparent text-sm text-text placeholder:text-text-muted focus:outline-none px-2"
           />
           <button
