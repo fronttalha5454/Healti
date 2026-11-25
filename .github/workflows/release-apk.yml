@@ -37,7 +37,20 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Build-time config comes from repository secrets (Settings > Secrets and variables > Actions).
+      # Missing secrets are empty, so the app builds but Firebase login shows a config warning.
       - name: Build web app
+        env:
+          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+          VITE_PUSH_API_URL: ${{ secrets.VITE_PUSH_API_URL }}
+          VITE_AI_API_URL: ${{ secrets.VITE_AI_API_URL }}
+          VITE_AI_CLIENT_TOKEN: ${{ secrets.VITE_AI_CLIENT_TOKEN }}
         run: npm run build
 
       - name: Sync Capacitor Android project
@@ -60,4 +73,4 @@ jobs:
             --target "$GITHUB_SHA" \
             --prerelease \
             --title "Healti APK #${GITHUB_RUN_NUMBER} (${SHORT_SHA})" \
-            --notes "Debug APK built automatically from ${SHORT_SHA} on ${GITHUB_REF_NAME}. Install on Android by allowing installs from unknown sources."
+            --notes "Debug APK built automatically from ${SHORT_SHA} on ${GITHUB_REF_NAME}. Install on Android by allowing installs from unknown sources. Firebase login needs the VITE_FIREBASE_* repository secrets; without them the login screen shows a configuration warning."
