@@ -22,7 +22,7 @@ export function FloatingAIButton() {
   const location = useLocation();
 
   // Don't show on AI Coach page itself or onboarding
-  if (location.pathname === '/ai-coach' || location.pathname === '/login') {
+  if (['/ai-coach', '/login', '/meal-plan', '/workout/active'].includes(location.pathname)) {
     return null;
   }
 
@@ -43,7 +43,7 @@ export function FloatingAIButton() {
   return (
     <button
       onClick={handleClick}
-      className="fixed right-4 z-50 flex items-center gap-2 pl-4 pr-5 py-3 rounded-full text-white font-semibold text-sm transition-all active:scale-95 shadow-xl"
+      className="fixed right-4 z-fab flex items-center gap-2 pl-4 pr-5 py-3 rounded-full text-white font-semibold text-sm transition-all active:scale-95 shadow-xl"
       style={{
         bottom: 'calc(5rem + env(safe-area-inset-bottom, 0px))',
         background: 'linear-gradient(135deg, #3b82f6, #6366f1, #8b5cf6)',
@@ -52,7 +52,7 @@ export function FloatingAIButton() {
       aria-label="AI Koç"
     >
       <MessageCircle size={18} className="text-white flex-shrink-0" />
-      <span className="hidden sm:inline">Fitness AI</span>
+      <span className="hidden sm:inline">Healthi AI</span>
       {context && (
         <span className="text-xs opacity-80 hidden md:inline">
           {context.icon} {context.hint}

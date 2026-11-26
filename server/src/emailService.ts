@@ -14,7 +14,7 @@ import { Resend } from 'resend';
 // ─── Configuration ───
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const FROM_EMAIL = process.env.FROM_EMAIL || 'Freebuff <onboarding@resend.dev>';
+const FROM_EMAIL = process.env.FROM_EMAIL || 'Healthi <onboarding@resend.dev>';
 const APP_URL = process.env.APP_URL || 'http://localhost:5173';
 
 // ─── Resend Client ───
@@ -64,7 +64,7 @@ export async function sendWelcomeEmail(params: WelcomeEmailParams): Promise<Emai
   console.log(`[WELCOME_EMAIL] send started for ${email} (userId: ${userId})`);
 
   const client = getResendClient();
-  const subject = "Freebuff'a Hoş Geldin! 🚀";
+  const subject = "Healthi'a Hoş Geldin! 🚀";
   const html = buildWelcomeEmailHtml(displayName);
   const text = buildWelcomeEmailText(displayName);
 
@@ -113,7 +113,7 @@ function buildWelcomeEmailHtml(displayName?: string | null): string {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="light">
   <meta name="supported-color-schemes" content="light">
-  <title>Freebuff'a Hoş Geldin!</title>
+  <title>Healthi'a Hoş Geldin!</title>
 </head>
 <body style="margin:0;padding:0;background-color:#0a0a1a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#0a0a1a;">
@@ -137,7 +137,7 @@ function buildWelcomeEmailHtml(displayName?: string | null): string {
                 ${greeting}
               </h1>
               <p style="margin:0 0 32px 0;font-size:15px;color:#9ca3af;text-align:center;line-height:1.6;">
-                Freebuff'a katıldığın için teşekkürler.<br>
+                Healthi'a katıldığın için teşekkürler.<br>
                 Artık fitness yolculuğunu tek bir yerden yönetebilirsin.
               </p>
 
@@ -197,7 +197,7 @@ function buildWelcomeEmailHtml(displayName?: string | null): string {
 
               <!-- Description -->
               <p style="margin:0 0 32px 0;font-size:14px;color:#9ca3af;text-align:center;line-height:1.6;">
-                Freebuff senin için günlük hedeflerini daha düzenli ve takip edilebilir hale getirmek için tasarlandı.
+                Healthi senin için günlük hedeflerini daha düzenli ve takip edilebilir hale getirmek için tasarlandı.
               </p>
 
               <!-- CTA Button -->
@@ -205,7 +205,7 @@ function buildWelcomeEmailHtml(displayName?: string | null): string {
                 <tr>
                   <td align="center">
                     <a href="${APP_URL}" style="display:inline-block;background:linear-gradient(135deg,#6366f1,#3b82f6);color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;padding:14px 48px;border-radius:12px;">
-                      Freebuff'ı Aç
+                      Healthi'ı Aç
                     </a>
                   </td>
                 </tr>
@@ -217,7 +217,7 @@ function buildWelcomeEmailHtml(displayName?: string | null): string {
           <tr>
             <td align="center" style="padding:24px 0;">
               <p style="margin:0;font-size:12px;color:#6b7280;">
-                Freebuff Ekibi ❤️
+                Healthi Ekibi ❤️
               </p>
               <p style="margin:8px 0 0 0;font-size:11px;color:#4b5563;">
                 Bu e-posta yeni hesap oluşturma işleminiz nedeniyle gönderilmiştir.
@@ -242,7 +242,7 @@ function buildWelcomeEmailText(displayName?: string | null): string {
 
 ${greeting}
 
-Freebuff'a katıldığın için teşekkürler.
+Healthi'a katıldığın için teşekkürler.
 Artık fitness yolculuğunu tek bir yerden yönetebilirsin.
 
 🏋️ Antrenmanlarını takip et
@@ -251,14 +251,14 @@ Artık fitness yolculuğunu tek bir yerden yönetebilirsin.
 📈 İlerlemeni takip et
 😴 Uyku düzenini takip et
 
-Freebuff senin için günlük hedeflerini daha düzenli ve takip edilebilir hale getirmek için tasarlandı.
+Healthi senin için günlük hedeflerini daha düzenli ve takip edilebilir hale getirmek için tasarlandı.
 
 Şimdi uygulamaya gir ve ilk hedeflerini oluştur:
 
 ${APP_URL}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━
-Freebuff Ekibi ❤️
+Healthi Ekibi ❤️
 `;
 }
 

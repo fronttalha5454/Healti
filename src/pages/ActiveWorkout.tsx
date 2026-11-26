@@ -235,7 +235,7 @@ export function ActiveWorkout() {
   return (
     <div className="min-h-[100dvh] bg-bg">
       {/* Header */}
-      <div className="safe-top glass border-b border-border-light sticky top-0 z-40">
+      <div className="safe-top glass border-b border-border-light sticky top-0 z-header">
         <div className="px-4 py-3">
           <div className="flex items-center justify-between">
             <button onClick={handleCancel} className="p-2 -ml-2">
@@ -469,7 +469,7 @@ export function ActiveWorkout() {
 
       {/* Complete Modal */}
       {showCompleteModal && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50">
+        <div className="fixed inset-0 z-modal flex items-end justify-center bg-black/50">
           <div className="w-full max-w-lg bg-surface rounded-t-3xl p-6 animate-slide-up safe-bottom">
             <div className="w-10 h-1 bg-border rounded-full mx-auto mb-6" />
             <h2 className="text-lg font-bold text-text mb-4">Antrenmanı Tamamla</h2>

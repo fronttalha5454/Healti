@@ -1,4 +1,4 @@
-# Fitness AI - Kişisel AI Fitness Koçu
+# Healthi - Kişisel Sağlıklı Yaşam Koçu
 
 Gerçek bir Android fitness uygulaması. Kullanıcının fiziksel durumunu, hedeflerini, spor geçmişini, yaşam tarzını, ekipmanlarını, zamanını ve beslenme alışkanlıklarını analiz ederek kişiselleştirilmiş antrenman + beslenme + toparlanma sistemi oluşturur.
 

@@ -42,6 +42,13 @@ export interface Profile {
   goalRegions: GoalRegion[];
   customGoalLabel?: string;
   programSource: 'ai' | 'existing' | 'custom' | 'imported';
+  // Healthi V3 (optional so older saved profiles stay valid)
+  /** Preferred meal timing pattern, see MEAL_SCHEDULES in domain/usecases/dynamicMealPlan */
+  mealSchedule?: 'standard' | 'early' | 'late' | 'if_16_8' | 'shift';
+  /** Vary calories between training and rest days (weekly average stays on target) */
+  calorieCycling?: boolean;
+  /** Prefer equipment-free home workouts */
+  preferBodyweight?: boolean;
 }
 
 export type FitnessGoal =

@@ -2,9 +2,9 @@ import { lazy, Suspense, useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useUserStore } from './presentation/store/userStore';
 import { BottomNav } from './presentation/components/BottomNav';
-import { FloatingAIButton } from './components/FloatingAIButton';
-import { ErrorBoundary } from './components/ErrorBoundary';
-import { NotificationProvider } from './components/NotificationProvider';
+import { FloatingAIButton } from './presentation/components/FloatingAIButton';
+import { ErrorBoundary } from './presentation/components/ErrorBoundary';
+import { NotificationProvider } from './presentation/components/NotificationProvider';
 import { App as CapApp } from '@capacitor/app';
 import { useAuthSync } from './presentation/hooks/useAuthSync';
 
@@ -26,6 +26,7 @@ const NotificationSettings = lazy(() => import('./pages/NotificationSettings').t
 const Login = lazy(() => import('./pages/Login').then(m => ({ default: m.Login })));
 const Register = lazy(() => import('./pages/Register').then(m => ({ default: m.Register })));
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword').then(m => ({ default: m.ForgotPassword })));
+const WeeklyMealPlan = lazy(() => import('./pages/WeeklyMealPlan').then(m => ({ default: m.WeeklyMealPlan })));
 const NotificationCenter = lazy(() => import('./pages/NotificationCenter').then(m => ({ default: m.NotificationCenter })));
 
 /** Handles Capacitor hardware back button – navigates back instead of exiting */
@@ -85,7 +86,8 @@ function AppRoutes() {
 
   return (
     <NotificationProvider>
-    <div className="flex flex-col min-h-[100dvh] bg-bg">        <BackButtonHandler />
+    <div className="flex flex-col min-h-[100dvh] bg-bg">
+      <BackButtonHandler />
       <FloatingAIButton />
       <main className="flex-1 pb-28 overflow-y-auto">
         <Suspense fallback={<PageLoader />}>
@@ -94,6 +96,7 @@ function AppRoutes() {
           <Route path="/workout" element={<Workout />} />
           <Route path="/workout/active" element={<ActiveWorkout />} />
           <Route path="/nutrition" element={<Nutrition />} />
+          <Route path="/meal-plan" element={<WeeklyMealPlan />} />
           <Route path="/progress" element={<Progress />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/exercises" element={<ExerciseLibrary />} />

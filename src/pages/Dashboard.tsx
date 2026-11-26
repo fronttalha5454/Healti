@@ -14,6 +14,7 @@ import { Card } from '../presentation/components/ui/Card';
 import { ProgressRing } from '../presentation/components/ui/ProgressRing';
 import { useNavigate } from 'react-router-dom';
 import { RecoveryInput } from '../presentation/components/RecoveryInput';
+import { HealthiLogo } from '../presentation/components/HealthiLogo';
 import {
   Dumbbell, Apple, TrendingUp, Droplets, Moon, Scale, ChevronRight,
   MessageCircle, ClipboardCheck, ChevronDown, ChevronUp, Trophy, X,
@@ -296,6 +297,7 @@ export function Dashboard() {
       <div className="safe-top px-4 pt-4 pb-2">
         <div className="flex items-center justify-between">
           <div>
+            <HealthiLogo size={22} withText className="mb-1" />
             <p className="text-sm text-text-muted">Merhaba 👋</p>
             <h1 className="text-xl font-bold text-text">{user?.name || 'Kullanıcı'}</h1>
             <p className="text-xs text-primary font-medium mt-0.5">
