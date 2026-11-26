@@ -121,7 +121,7 @@ export function ExerciseLibrary() {
         )}
 
         {/* Muscle Filter */}
-        <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1">
+        <div className="flex gap-2 overflow-x-auto shrink-0 hide-scrollbar pb-1">
           {muscles.map((m) => (
             <button
               key={m}

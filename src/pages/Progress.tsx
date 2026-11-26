@@ -147,7 +147,7 @@ export function Progress() {
 
       {/* Tabs */}
       <div className="px-4 py-3">
-        <div className="flex gap-1 bg-surface-card rounded-xl p-1 overflow-x-auto">
+        <div className="flex gap-1 bg-surface-card rounded-xl p-1 overflow-x-auto shrink-0">
           {[
             { id: 'weight' as const, label: 'Kilo', icon: Scale },
             { id: 'measurements' as const, label: 'Ölçümler', icon: Ruler },

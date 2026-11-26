@@ -316,7 +316,7 @@ export function ShoppingList() {
         </div>
 
         {/* Category Filters */}
-        <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1">
+        <div className="flex gap-2 overflow-x-auto shrink-0 hide-scrollbar pb-1">
           <button
             onClick={() => setFilterCategory('all')}
             className={`px-3 py-1.5 rounded-lg text-xs whitespace-nowrap transition-all ${
@@ -484,7 +484,7 @@ export function ShoppingList() {
 
               <div>
                 <label className="text-sm text-text-secondary mb-2 block">Kategori</label>
-                <div className="flex gap-2 overflow-x-auto hide-scrollbar">
+                <div className="flex gap-2 overflow-x-auto shrink-0 hide-scrollbar">
                   {Object.entries(CATEGORY_CONFIG).map(([key, config]) => (
                     <button
                       key={key}

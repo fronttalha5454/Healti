@@ -55,7 +55,7 @@ export function WeeklyPlan() {
       </div>
 
       {/* Day Selector */}
-      <div className="flex gap-1.5 overflow-x-auto hide-scrollbar pb-1">
+      <div className="flex gap-1.5 overflow-x-auto shrink-0 hide-scrollbar pb-1">
         {DAY_NAMES.map((day) => {
           const isSelected = day === selectedDay;
           const today = toLocalDateString();
@@ -624,7 +624,7 @@ function WeeklyAddFoodModal({
           {!search && (
             <div className="mb-3">
               <p className="text-[11px] font-semibold text-text-secondary px-1 mb-1">⚡ Hazır Şablonlar</p>
-              <div className="flex gap-2 overflow-x-auto hide-scrollbar">
+              <div className="flex gap-2 overflow-x-auto shrink-0 hide-scrollbar">
                 {getTemplatesForMeal(mealType).map((tpl) => (
                   <button
                     key={tpl.id}
@@ -657,7 +657,7 @@ function WeeklyAddFoodModal({
           </div>
 
           {/* Categories */}
-          <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-3">
+          <div className="flex gap-2 overflow-x-auto shrink-0 hide-scrollbar pb-3">
             <button
               onClick={() => setActiveCategory('all')}
               className={`px-3 py-1.5 rounded-lg text-xs whitespace-nowrap transition-all flex-shrink-0 ${

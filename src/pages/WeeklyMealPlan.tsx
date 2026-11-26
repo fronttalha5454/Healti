@@ -101,7 +101,7 @@ export function WeeklyMealPlan() {
 
           <div>
             <p className="text-sm font-semibold text-text mb-1.5">Öğün saatleri</p>
-            <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1">
+            <div className="flex gap-2 overflow-x-auto shrink-0 hide-scrollbar pb-1">
               {Object.values(MEAL_SCHEDULES).map((s) => (
                 <button
                   key={s.id}
@@ -119,7 +119,7 @@ export function WeeklyMealPlan() {
         </Card>
 
         {/* Day tabs */}
-        <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1">
+        <div className="flex gap-2 overflow-x-auto shrink-0 hide-scrollbar pb-1">
           {days.map((d) => (
             <button
               key={d.dayKey}

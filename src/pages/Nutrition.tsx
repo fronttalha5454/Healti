@@ -531,7 +531,7 @@ function AddFoodModal({
 
             <div>
               <label className="text-sm text-text-secondary mb-2 block">Kategori</label>
-              <div className="flex gap-2 overflow-x-auto hide-scrollbar">
+              <div className="flex gap-2 overflow-x-auto shrink-0 hide-scrollbar">
                 {FOOD_CATEGORIES.map((cat) => (
                   <button
                     key={cat.id}
@@ -688,7 +688,7 @@ function AddFoodModal({
 
         {/* Categories */}
         {isSnack ? (
-          <div className="flex gap-2 overflow-x-auto hide-scrollbar mb-3 pb-1">
+          <div className="flex gap-2 overflow-x-auto shrink-0 hide-scrollbar mb-3 pb-1">
             <button
               onClick={() => setActiveSnackCategory('all')}
               className={`px-3 py-1.5 rounded-lg text-xs whitespace-nowrap transition-all ${
@@ -714,7 +714,7 @@ function AddFoodModal({
             ))}
           </div>
         ) : (
-          <div className="flex gap-2 overflow-x-auto hide-scrollbar mb-3 pb-1">
+          <div className="flex gap-2 overflow-x-auto shrink-0 hide-scrollbar mb-3 pb-1">
             <button
               onClick={() => setActiveCategory('all')}
               className={`px-3 py-1.5 rounded-lg text-xs whitespace-nowrap transition-all ${
