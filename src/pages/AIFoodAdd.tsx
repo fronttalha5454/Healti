@@ -225,7 +225,7 @@ export function AIFoodAdd() {
 
       <div className="px-4 py-4 space-y-4">
         {/* Meal Type Selector */}
-        <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1">
+        <div className="flex gap-2 overflow-x-auto shrink-0 hide-scrollbar pb-1">
           {MEAL_TYPES.map((mt) => (
             <button
               key={mt.value}
