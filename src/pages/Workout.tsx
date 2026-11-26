@@ -4,11 +4,13 @@ import { useUserStore } from '../presentation/store/userStore';
 import { selectWorkoutProgram } from '../domain/usecases/fitness';
 import { getTodaySession, isTodayWorkoutDay, getTodayDateString } from '../domain/usecases/sessionMatcher';
 import { Card } from '../presentation/components/ui/Card';
-import { Dumbbell, Clock, ChevronRight, ChevronLeft, CheckCircle2, Flame, Check, BarChart3, Target, TrendingUp, Zap, Calendar, Home, Building2 } from 'lucide-react';
+import { Dumbbell, Clock, ChevronRight, ChevronLeft, CheckCircle2, Flame, Check, BarChart3, Target, TrendingUp, Zap, Calendar, Home, Building2, Trash2 } from 'lucide-react';
 import { useState, useCallback } from 'react';
 
 export function Workout() {
-  const { activePlan, workoutLogs, completeWorkout, getAnalytics, customPrograms, setPlan, startWorkout } = useWorkoutStore();
+  const { activePlan, workoutLogs, completeWorkout, deleteWorkoutLog, getAnalytics, customPrograms, setPlan, startWorkout } = useWorkoutStore();
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [showAllHistory, setShowAllHistory] = useState(false);
   const { profile, updateProfile } = useUserStore();
   const navigate = useNavigate();
   const [showAnalytics, setShowAnalytics] = useState(false);
@@ -317,19 +319,62 @@ export function Workout() {
         {workoutLogs.length > 0 && (
           <div className="space-y-3">
             <h3 className="text-sm font-semibold text-text">Son Antrenmanlar</h3>
-            {[...workoutLogs].reverse().slice(0, 5).map((log) => (
+            {[...workoutLogs].reverse().slice(0, showAllHistory ? undefined : 5).map((log) => (
               <Card key={log.id} padding="sm">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-text">{log.date}</p>
-                    <p className="text-xs text-text-muted">
-                      {log.exercises.length} egzersiz · {log.duration} dk · RPE {log.rpe}
+                {pendingDeleteId === log.id ? (
+                  <div className="space-y-2">
+                    <p className="text-sm text-text">
+                      <span className="font-medium">{log.date}</span> antrenmanı kayıtlardan silinsin mi?
                     </p>
+                    <p className="text-xs text-text-muted">Bu işlem geri alınamaz. İstatistikler ve rekorlar yeniden hesaplanır.</p>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setPendingDeleteId(null)}
+                        className="flex-1 py-2 rounded-xl bg-surface border border-border text-text text-sm font-medium"
+                      >
+                        Vazgeç
+                      </button>
+                      <button
+                        onClick={() => {
+                          deleteWorkoutLog(log.id);
+                          setPendingDeleteId(null);
+                        }}
+                        className="flex-1 py-2 rounded-xl bg-red-500 text-white text-sm font-semibold"
+                      >
+                        Sil
+                      </button>
+                    </div>
                   </div>
-                  <CheckCircle2 size={16} className="text-accent" />
-                </div>
+                ) : (
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <CheckCircle2 size={16} className="text-accent shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-text">{log.date}</p>
+                        <p className="text-xs text-text-muted">
+                          {log.exercises.length} egzersiz · {log.duration} dk · RPE {log.rpe}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setPendingDeleteId(log.id)}
+                      aria-label="Antrenmanı sil"
+                      className="p-2 -m-1 rounded-lg text-text-muted hover:text-red-400 active:text-red-400"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                )}
               </Card>
             ))}
+            {workoutLogs.length > 5 && (
+              <button
+                onClick={() => setShowAllHistory((v) => !v)}
+                className="w-full py-2 text-xs font-medium text-primary"
+              >
+                {showAllHistory ? 'Daha az göster' : `Tümünü göster (${workoutLogs.length})`}
+              </button>
+            )}
           </div>
         )}
 
