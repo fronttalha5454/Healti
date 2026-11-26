@@ -280,7 +280,22 @@ async function requestNativePermission(): Promise<NotificationPermissionState> {
   }
 }
 
+/**
+ * Native FCM registration needs android/app/google-services.json inside the APK.
+ * Without it the Capacitor plugin's register() throws a native IllegalStateException
+ * ("Default FirebaseApp is not initialized") that a JS try/catch cannot catch and
+ * that closes the app on launch ("Uygulama durduruldu"). Old Android versions
+ * (<13) report notification permission as granted at first start, so this ran on
+ * every launch. Registration is therefore opt-in: build with
+ * VITE_ENABLE_NATIVE_PUSH=true only after adding google-services.json.
+ */
+const NATIVE_PUSH_ENABLED = import.meta.env.VITE_ENABLE_NATIVE_PUSH === 'true';
+
 async function registerForPush(PushNotifications: any): Promise<void> {
+  if (!NATIVE_PUSH_ENABLED) {
+    console.info('[Push] Native FCM registration disabled (VITE_ENABLE_NATIVE_PUSH is not true).');
+    return;
+  }
   try {
     await PushNotifications.register();
   } catch (error) {
