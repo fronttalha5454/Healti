@@ -21,6 +21,8 @@ export const FOODS: Food[] = [
   { id: 'chicken_thigh', name: 'Chicken Thigh', nameTr: 'Tavuk But', category: 'protein', per100g: { calories: 209, protein: 26, carbs: 0, fat: 10.9 }, commonPortions: [{ name: '1 porsiyon', grams: 150 }] },
   { id: 'chicken_wing', name: 'Chicken Wing', nameTr: 'Tavuk Kanat', category: 'protein', per100g: { calories: 239, protein: 18, carbs: 0, fat: 18 }, commonPortions: [{ name: '6 adet', grams: 120 }] },
   { id: 'egg', name: 'Egg', nameTr: 'Yumurta', category: 'protein', per100g: { calories: 155, protein: 13, carbs: 1.1, fat: 11 }, commonPortions: [{ name: '1 adet', grams: 50 }, { name: '2 adet', grams: 100 }] },
+  { id: 'yumurta_ak', name: 'Egg White', nameTr: 'Yumurta Akı', category: 'protein', per100g: { calories: 52, protein: 10.9, carbs: 0.7, fat: 0.2 }, commonPortions: [{ name: '1 adet', grams: 33 }, { name: '3 adet', grams: 99 }] },
+  { id: 'sucuk', name: 'Turkish Sausage', nameTr: 'Sucuk', category: 'protein', per100g: { calories: 450, protein: 20, carbs: 2, fat: 40 }, commonPortions: [{ name: '4 dilim', grams: 40 }, { name: '1 porsiyon', grams: 60 }] },
   { id: 'tuna', name: 'Tuna', nameTr: 'Ton Balığı', category: 'protein', per100g: { calories: 132, protein: 28, carbs: 0, fat: 1.3 }, commonPortions: [{ name: '1 kutu', grams: 80 }, { name: '1 porsiyon', grams: 100 }] },
   { id: 'beef', name: 'Beef', nameTr: 'Sığır Eti', category: 'protein', per100g: { calories: 250, protein: 26, carbs: 0, fat: 15 }, commonPortions: [{ name: '1 porsiyon', grams: 150 }] },
   { id: 'beef_lean', name: 'Lean Beef', nameTr: 'Dana Bonfile', category: 'protein', per100g: { calories: 187, protein: 28, carbs: 0, fat: 8 }, commonPortions: [{ name: '1 porsiyon', grams: 150 }] },
@@ -105,6 +107,7 @@ export const FOODS: Food[] = [
   // YAĞLAR
   // ═══════════════════════════════════════
   { id: 'olive_oil', name: 'Olive Oil', nameTr: 'Zeytinyağı', category: 'fat', per100g: { calories: 884, protein: 0, carbs: 0, fat: 100 }, commonPortions: [{ name: '1 yemek kaşığı', grams: 15 }] },
+  { id: 'olive', name: 'Black Olives', nameTr: 'Zeytin', category: 'fat', per100g: { calories: 260, protein: 1.8, carbs: 5, fat: 26 }, commonPortions: [{ name: '5 adet', grams: 20 }, { name: '10 adet', grams: 40 }] },
   { id: 'avocado', name: 'Avocado', nameTr: 'Avokado', category: 'fat', per100g: { calories: 160, protein: 2, carbs: 9, fat: 15 }, commonPortions: [{ name: '1/2 adet', grams: 100 }, { name: '1 adet', grams: 200 }] },
   { id: 'almonds', name: 'Almonds', nameTr: 'Badem', category: 'fat', per100g: { calories: 579, protein: 21, carbs: 22, fat: 50 }, commonPortions: [{ name: '1 avuç', grams: 30 }] },
   { id: 'peanut_butter', name: 'Peanut Butter', nameTr: 'Fıstık Ezmesi', category: 'fat', per100g: { calories: 588, protein: 25, carbs: 20, fat: 50 }, commonPortions: [{ name: '1 yemek kaşığı', grams: 32 }] },
@@ -328,6 +331,8 @@ export function searchFoods(query: string): Food[] {
 // Her besin için yaklaşık adet/porsiyon karşılığı
 const PORTION_EQUIVALENTS: Record<string, { gramsPerUnit: number; unitName: string }> = {
   egg:       { gramsPerUnit: 50, unitName: 'adet' },
+  yumurta_ak: { gramsPerUnit: 33, unitName: 'adet' },
+  olive:     { gramsPerUnit: 4, unitName: 'adet' },
   banana:    { gramsPerUnit: 120, unitName: 'adet' },
   apple:     { gramsPerUnit: 180, unitName: 'adet' },
   orange:    { gramsPerUnit: 150, unitName: 'adet' },
@@ -369,7 +374,8 @@ export function getPortionEquivalent(food: Food, grams: number): string | null {
   if (!equiv || equiv.gramsPerUnit <= 0) return null;
   const units = grams / equiv.gramsPerUnit;
   if (units < 0.25) return null;
-  const rounded = units < 1 ? `~%1/4` : units < 1.5 ? `~1 ${equiv.unitName}` : `~${Math.round(units)} ${equiv.unitName}`;
+  const fraction = units < 0.375 ? '1/4' : units < 0.625 ? '1/2' : '3/4';
+  const rounded = units < 1 ? `~${fraction} ${equiv.unitName}` : units < 1.5 ? `~1 ${equiv.unitName}` : `~${Math.round(units)} ${equiv.unitName}`;
   return `≈ ${rounded}`;
 }
 
@@ -410,6 +416,9 @@ const MEAL_RELEVANCE: Record<string, RelevanceRow> = {
   egg: { breakfast: 3, evening_snack: 2 },
   cheese: { breakfast: 3, morning_snack: 1, evening_snack: 1 },
   kashkaval: { breakfast: 3, morning_snack: 1 },
+  olive: { breakfast: 3 },
+  sucuk: { breakfast: 3 },
+  yumurta_ak: { breakfast: 3, evening_snack: 2 },
   string_cheese: { breakfast: 2, morning_snack: 2, afternoon_snack: 2 },
   menemen: { breakfast: 3 },
   simit: { breakfast: 2, morning_snack: 2, afternoon_snack: 1 },

@@ -8,9 +8,10 @@ import { ProgressRing } from '../presentation/components/ui/ProgressRing';
 import { Button } from '../presentation/components/ui/Button';
 import { FOODS, searchFoods, calculateFoodCalories, FOOD_CATEGORIES, getPortionEquivalent } from '../infrastructure/data/data/foods';
 import type { Food } from '../infrastructure/data/data/foods';
+import { getTemplatesForMeal, resolveMealTemplate, type MealTemplate } from '../infrastructure/data/data/mealTemplates';
 import type { FoodEntry, MealType } from '../types';
 import { MEAL_TYPE_LABELS } from '../types';
-import { Plus, Minus, X, Search, ChevronRight, ChevronLeft, Droplets, Trash2, Sparkles, CalendarRange } from 'lucide-react';
+import { Plus, Minus, X, Search, ChevronRight, ChevronLeft, Check, Droplets, Trash2, Sparkles, CalendarRange } from 'lucide-react';
 
 const MEAL_TYPES: { value: MealType; label: string; icon: string }[] = [
   { value: 'breakfast', label: MEAL_TYPE_LABELS.breakfast.label, icon: MEAL_TYPE_LABELS.breakfast.icon },
@@ -61,6 +62,24 @@ export function Nutrition() {
       amount: grams,
       unit: 'g',
       ...nutrition,
+    });
+    setShowAddModal(false);
+  };
+
+  // Hazır menü: every selected item becomes its own entry, so it can be removed later one by one.
+  const handleAddTemplate = (items: { food: Food; grams: number }[], mealType: string) => {
+    const stamp = Date.now();
+    items.forEach(({ food, grams }, index) => {
+      addFood({
+        id: `food_${stamp}_${index}`,
+        userId: '',
+        date: today,
+        mealType: mealType as MealType,
+        name: food.nameTr,
+        amount: grams,
+        unit: 'g',
+        ...calculateFoodCalories(food, grams),
+      });
     });
     setShowAddModal(false);
   };
@@ -324,6 +343,7 @@ export function Nutrition() {
         <AddFoodModal
           mealType={selectedMeal}
           onAdd={(food, grams) => handleAddFood(food, grams, selectedMeal)}
+          onAddMany={(items) => handleAddTemplate(items, selectedMeal)}
           onClose={() => setShowAddModal(false)}
         />
       )}
@@ -331,15 +351,37 @@ export function Nutrition() {
   );
 }
 
+type TemplateLine = { food: Food; grams: number };
+
+function sumNutrition(items: TemplateLine[]) {
+  return items.reduce(
+    (acc, { food, grams }) => {
+      const n = calculateFoodCalories(food, grams);
+      return {
+        calories: acc.calories + n.calories,
+        protein: acc.protein + n.protein,
+        carbs: acc.carbs + n.carbs,
+        fat: acc.fat + n.fat,
+      };
+    },
+    { calories: 0, protein: 0, carbs: 0, fat: 0 }
+  );
+}
+
 function AddFoodModal({
   mealType,
   onAdd,
+  onAddMany,
   onClose,
 }: {
   mealType: string;
   onAdd: (food: Food, grams: number) => void;
+  onAddMany: (items: TemplateLine[]) => void;
   onClose: () => void;
 }) {
+  const [mode, setMode] = useState<'foods' | 'templates'>('foods');
+  const [selectedTemplate, setSelectedTemplate] = useState<MealTemplate | null>(null);
+  const [excludedItems, setExcludedItems] = useState<Set<number>>(new Set());
   const [search, setSearch] = useState('');
   const [selectedFood, setSelectedFood] = useState<Food | null>(null);
   const [grams, setGrams] = useState(100);
@@ -392,6 +434,95 @@ function AddFoodModal({
     };
     onAdd(customFoodItem, grams);
   };
+
+  const closeTemplate = () => {
+    setSelectedTemplate(null);
+    setExcludedItems(new Set());
+  };
+
+  if (selectedTemplate) {
+    const lines = resolveMealTemplate(selectedTemplate);
+    const chosen = lines.filter((_, index) => !excludedItems.has(index));
+    const totals = sumNutrition(chosen);
+    const toggleItem = (index: number) =>
+      setExcludedItems((prev) => {
+        const next = new Set(prev);
+        if (next.has(index)) next.delete(index);
+        else next.add(index);
+        return next;
+      });
+
+    return (
+      <div className="fixed inset-0 z-modal flex items-end justify-center bg-black/50">
+        <div className="w-full max-w-lg bg-surface rounded-t-3xl p-6 animate-slide-up safe-bottom max-h-[85dvh] flex flex-col">
+          <div className="w-10 h-1 bg-border rounded-full mx-auto mb-4 shrink-0" />
+          <div className="flex items-center gap-2 mb-1 shrink-0">
+            <button onClick={closeTemplate} className="p-1 -ml-1 rounded-lg" aria-label="Menülere dön">
+              <ChevronLeft size={20} className="text-text-muted" />
+            </button>
+            <h2 className="flex-1 min-w-0 text-lg font-bold text-text truncate">
+              <span className="mr-1" aria-hidden="true">{selectedTemplate.emoji}</span>
+              {selectedTemplate.name}
+            </h2>
+            <button onClick={onClose} className="p-2" aria-label="Kapat">
+              <X size={18} className="text-text-muted" />
+            </button>
+          </div>
+          <p className="text-xs text-text-muted mb-4 shrink-0">
+            İstemediğin besinin işaretini kaldır. Her besin ayrı eklenir, sonra tek tek silebilirsin.
+          </p>
+
+          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain space-y-1.5 pb-2">
+            {lines.map(({ food, grams: itemGrams }, index) => {
+              const included = !excludedItems.has(index);
+              const itemNutrition = calculateFoodCalories(food, itemGrams);
+              const portion = getPortionEquivalent(food, itemGrams);
+              return (
+                <button
+                  key={`${food.id}-${index}`}
+                  role="checkbox"
+                  aria-checked={included}
+                  onClick={() => toggleItem(index)}
+                  className={`w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-colors ${
+                    included ? 'bg-surface-card border-primary/30' : 'border-border opacity-50'
+                  }`}
+                >
+                  <span
+                    className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 ${
+                      included ? 'bg-primary border-primary' : 'border-border'
+                    }`}
+                  >
+                    {included && <Check size={12} className="text-white" />}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-medium text-text truncate">{food.nameTr}</span>
+                    <span className="block text-[10px] text-text-muted">
+                      {itemGrams} g{portion ? ` · ${portion}` : ''}
+                    </span>
+                  </span>
+                  <span className="text-xs font-semibold text-text shrink-0">{itemNutrition.calories} kcal</span>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="shrink-0 pt-3 mt-2 border-t border-border">
+            <div className="flex items-center justify-between gap-2 mb-3">
+              <span className="text-sm font-bold text-text">{totals.calories} kcal</span>
+              <div className="flex flex-wrap justify-end gap-1">
+                <MacroBadge label="P" value={totals.protein} className="bg-protein/15 text-protein" />
+                <MacroBadge label="K" value={totals.carbs} className="bg-carbs/15 text-carbs" />
+                <MacroBadge label="Y" value={totals.fat} className="bg-fat/15 text-fat" />
+              </div>
+            </div>
+            <Button fullWidth disabled={chosen.length === 0} onClick={() => onAddMany(chosen)}>
+              Menüyü Ekle ({chosen.length} besin)
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (selectedFood) {
     return (
@@ -655,121 +786,171 @@ function AddFoodModal({
           </button>
         </div>
 
-        {/* Search */}
-        <div className="relative mb-3">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder={isSnack ? 'Meyve, kahve, kakao ara...' : 'Yemek ara...'}
-            className="w-full bg-surface-card border border-border rounded-xl pl-10 pr-4 py-2.5 text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/50"
-          />
-        </div>
-
-        {/* AI Suggestion when not found */}
-        {showAISuggestion && (
-          <div className="mb-3 p-3 bg-primary/5 border border-primary/10 rounded-xl">
-            <p className="text-xs text-text-secondary mb-2">
-              🔍 "<span className="font-medium text-text">{search}</span>" bulunamadı
-            </p>
+        {/* Besinler / Hazır Menüler */}
+        <div className="grid grid-cols-2 gap-1 p-1 mb-3 bg-surface-card border border-border rounded-xl shrink-0" role="tablist">
+          {(['foods', 'templates'] as const).map((tab) => (
             <button
-              onClick={() => {
-                setCustomFood({ ...customFood, nameTr: search });
-                setSearch('');
-                setShowCustomForm(true);
-              }}
-              className="w-full py-2.5 rounded-xl bg-primary/10 text-primary text-sm font-medium flex items-center justify-center gap-2 hover:bg-primary/15 transition-colors"
-            >
-              🤖 AI ile Besin Ekle
-            </button>
-          </div>
-        )}
-
-        {/* Categories */}
-        {isSnack ? (
-          <div className="flex gap-2 overflow-x-auto shrink-0 hide-scrollbar mb-3 pb-1">
-            <button
-              onClick={() => setActiveSnackCategory('all')}
-              className={`px-3 py-1.5 rounded-lg text-xs whitespace-nowrap transition-all ${
-                activeSnackCategory === 'all'
-                  ? 'bg-primary text-white'
-                  : 'bg-surface-card text-text-muted border border-border'
+              key={tab}
+              role="tab"
+              aria-selected={mode === tab}
+              onClick={() => setMode(tab)}
+              className={`py-2 rounded-lg text-xs font-semibold transition-colors ${
+                mode === tab ? 'bg-primary text-white' : 'text-text-muted hover:text-text'
               }`}
             >
-              Tümü
-            </button>
-            {SNACK_SUB_CATEGORIES.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => setActiveSnackCategory(cat.id)}
-                className={`px-3 py-1.5 rounded-lg text-xs whitespace-nowrap transition-all ${
-                  activeSnackCategory === cat.id
-                    ? 'bg-primary text-white'
-                    : 'bg-surface-card text-text-muted border border-border'
-                }`}
-              >
-                {cat.emoji} {cat.label}
-              </button>
-            ))}
-          </div>
-        ) : (
-          <div className="flex gap-2 overflow-x-auto shrink-0 hide-scrollbar mb-3 pb-1">
-            <button
-              onClick={() => setActiveCategory('all')}
-              className={`px-3 py-1.5 rounded-lg text-xs whitespace-nowrap transition-all ${
-                activeCategory === 'all'
-                  ? 'bg-primary text-white'
-                  : 'bg-surface-card text-text-muted border border-border'
-              }`}
-            >
-              Tümü
-            </button>
-            {FOOD_CATEGORIES.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => setActiveCategory(cat.id)}
-                className={`px-3 py-1.5 rounded-lg text-xs whitespace-nowrap transition-all ${
-                  activeCategory === cat.id
-                    ? 'bg-primary text-white'
-                    : 'bg-surface-card text-text-muted border border-border'
-                }`}
-              >
-                {cat.emoji} {cat.label}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* Food List */}
-        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain space-y-1 pb-2">
-          {filteredFoods.map((food) => (
-            <button
-              key={food.id}
-              onClick={() => setSelectedFood(food)}
-              className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-surface-card transition-colors"
-            >
-              <div className="text-left min-w-0 flex-1">
-                <p className="text-sm font-medium text-text truncate">{food.nameTr}</p>
-                <div className="mt-1 flex flex-wrap items-center gap-1">
-                  <span className="text-[10px] text-text-muted mr-0.5">{food.per100g.calories} kcal/100g</span>
-                  <MacroBadge label="P" value={food.per100g.protein} className="bg-protein/15 text-protein" />
-                  <MacroBadge label="K" value={food.per100g.carbs} className="bg-carbs/15 text-carbs" />
-                  <MacroBadge label="Y" value={food.per100g.fat} className="bg-fat/15 text-fat" />
-                </div>
-              </div>
-              <ChevronRight size={14} className="text-text-muted flex-shrink-0 ml-2" />
+              {tab === 'foods' ? '🔍 Besinler' : '🍽️ Hazır Menüler'}
             </button>
           ))}
-
-          {/* Add Custom Food Button */}
-          <button
-            onClick={() => setShowCustomForm(true)}
-            className="w-full flex items-center justify-center gap-2 p-3 rounded-xl border border-dashed border-primary/30 text-primary text-sm hover:bg-primary/5 transition-colors mt-2"
-          >
-            🤖 AI ile Özel Yemek Ekle
-          </button>
         </div>
+
+        {mode === 'templates' ? (
+          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain space-y-2 pb-2">
+            {getTemplatesForMeal(mealType).map((tpl) => {
+              const tplTotals = sumNutrition(resolveMealTemplate(tpl));
+              return (
+                <button
+                  key={tpl.id}
+                  onClick={() => {
+                    setExcludedItems(new Set());
+                    setSelectedTemplate(tpl);
+                  }}
+                  className="w-full flex items-center gap-3 p-3 rounded-xl bg-surface-card border border-border hover:border-primary/40 text-left transition-colors"
+                >
+                  <span className="text-2xl shrink-0" aria-hidden="true">{tpl.emoji}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-semibold text-text truncate">{tpl.name}</span>
+                    <span className="block text-[11px] text-text-muted leading-snug">{tpl.description}</span>
+                    <span className="mt-1 flex flex-wrap items-center gap-1">
+                      <span className="text-[10px] font-semibold text-text mr-0.5">{tplTotals.calories} kcal</span>
+                      <MacroBadge label="P" value={tplTotals.protein} className="bg-protein/15 text-protein" />
+                      <MacroBadge label="K" value={tplTotals.carbs} className="bg-carbs/15 text-carbs" />
+                      <MacroBadge label="Y" value={tplTotals.fat} className="bg-fat/15 text-fat" />
+                    </span>
+                  </span>
+                  <ChevronRight size={14} className="text-text-muted flex-shrink-0" />
+                </button>
+              );
+            })}
+          </div>
+        ) : (
+          <>
+            {/* Search */}
+            <div className="relative mb-3">
+              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder={isSnack ? 'Meyve, kahve, kakao ara...' : 'Yemek ara...'}
+                className="w-full bg-surface-card border border-border rounded-xl pl-10 pr-4 py-2.5 text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/50"
+              />
+            </div>
+    
+            {/* AI Suggestion when not found */}
+            {showAISuggestion && (
+              <div className="mb-3 p-3 bg-primary/5 border border-primary/10 rounded-xl">
+                <p className="text-xs text-text-secondary mb-2">
+                  🔍 "<span className="font-medium text-text">{search}</span>" bulunamadı
+                </p>
+                <button
+                  onClick={() => {
+                    setCustomFood({ ...customFood, nameTr: search });
+                    setSearch('');
+                    setShowCustomForm(true);
+                  }}
+                  className="w-full py-2.5 rounded-xl bg-primary/10 text-primary text-sm font-medium flex items-center justify-center gap-2 hover:bg-primary/15 transition-colors"
+                >
+                  🤖 AI ile Besin Ekle
+                </button>
+              </div>
+            )}
+    
+            {/* Categories */}
+            {isSnack ? (
+              <div className="flex gap-2 overflow-x-auto shrink-0 hide-scrollbar mb-3 pb-1">
+                <button
+                  onClick={() => setActiveSnackCategory('all')}
+                  className={`px-3 py-1.5 rounded-lg text-xs whitespace-nowrap transition-all ${
+                    activeSnackCategory === 'all'
+                      ? 'bg-primary text-white'
+                      : 'bg-surface-card text-text-muted border border-border'
+                  }`}
+                >
+                  Tümü
+                </button>
+                {SNACK_SUB_CATEGORIES.map((cat) => (
+                  <button
+                    key={cat.id}
+                    onClick={() => setActiveSnackCategory(cat.id)}
+                    className={`px-3 py-1.5 rounded-lg text-xs whitespace-nowrap transition-all ${
+                      activeSnackCategory === cat.id
+                        ? 'bg-primary text-white'
+                        : 'bg-surface-card text-text-muted border border-border'
+                    }`}
+                  >
+                    {cat.emoji} {cat.label}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="flex gap-2 overflow-x-auto shrink-0 hide-scrollbar mb-3 pb-1">
+                <button
+                  onClick={() => setActiveCategory('all')}
+                  className={`px-3 py-1.5 rounded-lg text-xs whitespace-nowrap transition-all ${
+                    activeCategory === 'all'
+                      ? 'bg-primary text-white'
+                      : 'bg-surface-card text-text-muted border border-border'
+                  }`}
+                >
+                  Tümü
+                </button>
+                {FOOD_CATEGORIES.map((cat) => (
+                  <button
+                    key={cat.id}
+                    onClick={() => setActiveCategory(cat.id)}
+                    className={`px-3 py-1.5 rounded-lg text-xs whitespace-nowrap transition-all ${
+                      activeCategory === cat.id
+                        ? 'bg-primary text-white'
+                        : 'bg-surface-card text-text-muted border border-border'
+                    }`}
+                  >
+                    {cat.emoji} {cat.label}
+                  </button>
+                ))}
+              </div>
+            )}
+    
+            {/* Food List */}
+            <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain space-y-1 pb-2">
+              {filteredFoods.map((food) => (
+                <button
+                  key={food.id}
+                  onClick={() => setSelectedFood(food)}
+                  className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-surface-card transition-colors"
+                >
+                  <div className="text-left min-w-0 flex-1">
+                    <p className="text-sm font-medium text-text truncate">{food.nameTr}</p>
+                    <div className="mt-1 flex flex-wrap items-center gap-1">
+                      <span className="text-[10px] text-text-muted mr-0.5">{food.per100g.calories} kcal/100g</span>
+                      <MacroBadge label="P" value={food.per100g.protein} className="bg-protein/15 text-protein" />
+                      <MacroBadge label="K" value={food.per100g.carbs} className="bg-carbs/15 text-carbs" />
+                      <MacroBadge label="Y" value={food.per100g.fat} className="bg-fat/15 text-fat" />
+                    </div>
+                  </div>
+                  <ChevronRight size={14} className="text-text-muted flex-shrink-0 ml-2" />
+                </button>
+              ))}
+    
+              {/* Add Custom Food Button */}
+              <button
+                onClick={() => setShowCustomForm(true)}
+                className="w-full flex items-center justify-center gap-2 p-3 rounded-xl border border-dashed border-primary/30 text-primary text-sm hover:bg-primary/5 transition-colors mt-2"
+              >
+                🤖 AI ile Özel Yemek Ekle
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
