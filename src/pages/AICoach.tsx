@@ -289,7 +289,7 @@ export function AICoach() {
   return (
     <div className="h-[100dvh] bg-bg flex flex-col">
       {/* Header */}
-      <div className="safe-top glass border-b border-border-light sticky top-0 z-40">
+      <div className="safe-top glass border-b border-border-light sticky top-0 z-header">
         <div className="px-4 py-3 flex items-center gap-3">
           <button onClick={() => navigate(-1)} className="p-1">
             <ArrowLeft size={20} className="text-text-secondary" />

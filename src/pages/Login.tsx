@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { signInWithEmail, validateEmail, validatePassword } from '../services/auth';
 import { isFirebaseConfigured } from '../services/firebase';
 import { Eye, EyeOff } from 'lucide-react';
-import healtiLogo from '../assets/healti-logo.png';
+import { HealthiLogo } from '../presentation/components/HealthiLogo';
 
 export function Login() {
   const navigate = useNavigate();
@@ -40,12 +40,8 @@ export function Login() {
       <div className="flex-1 flex flex-col justify-center max-w-sm mx-auto w-full">
         {/* Header */}
         <div className="text-center mb-10">
-          <img
-            src={healtiLogo}
-            alt="HEALTI"
-            className="w-20 h-20 mx-auto rounded-2xl mb-4 shadow-lg shadow-primary/20"
-          />
-          <h1 className="text-2xl font-bold text-gradient mb-1">HEALTI</h1>
+          <HealthiLogo size={80} className="mb-4 shadow-lg shadow-primary/20 rounded-2xl" />
+          <h1 className="text-2xl font-bold text-gradient mb-1">Healthi</h1>
           <p className="text-text-secondary text-sm">Tekrar hoş geldin</p>
         </div>
 

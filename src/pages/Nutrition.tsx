@@ -10,7 +10,7 @@ import { FOODS, searchFoods, calculateFoodCalories, FOOD_CATEGORIES, getPortionE
 import type { Food } from '../infrastructure/data/data/foods';
 import type { FoodEntry, MealType } from '../types';
 import { MEAL_TYPE_LABELS } from '../types';
-import { Plus, X, Search, ChevronRight, ChevronLeft, Droplets, Trash2, Sparkles } from 'lucide-react';
+import { Plus, Minus, X, Search, ChevronRight, ChevronLeft, Droplets, Trash2, Sparkles, CalendarRange } from 'lucide-react';
 
 const MEAL_TYPES: { value: MealType; label: string; icon: string }[] = [
   { value: 'breakfast', label: MEAL_TYPE_LABELS.breakfast.label, icon: MEAL_TYPE_LABELS.breakfast.icon },
@@ -149,6 +149,23 @@ export function Nutrition() {
               <p className="text-sm font-semibold text-text">✨ AI ile Yemek Ekle</p>
               <p className="text-xs text-text-secondary mt-0.5">Doğal dille yaz veya fotoğraf ile analiz et</p>
             </div>
+          </div>
+        </button>
+
+        {/* Dynamic weekly meal plan */}
+        <button
+          onClick={() => navigate('/meal-plan')}
+          className="w-full p-4 rounded-2xl text-left bg-surface-card border border-border-light transition-all active:scale-[0.98]"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center">
+              <CalendarRange size={18} className="text-primary" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-text">Haftalık Beslenme Planı</p>
+              <p className="text-xs text-text-secondary mt-0.5">Antrenman/dinlenme gününe göre değişen kalori, öğün saatleri ve alternatif menüler</p>
+            </div>
+            <ChevronRight size={16} className="text-text-muted" />
           </div>
         </button>
 
@@ -378,8 +395,8 @@ function AddFoodModal({
 
   if (selectedFood) {
     return (
-      <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50">
-        <div className="w-full max-w-lg bg-surface rounded-t-3xl p-6 animate-slide-up safe-bottom">
+      <div className="fixed inset-0 z-modal flex items-end justify-center bg-black/50">
+        <div className="w-full max-w-lg bg-surface rounded-t-3xl p-6 animate-slide-up safe-bottom max-h-[90dvh] overflow-y-auto overscroll-contain">
           <div className="w-10 h-1 bg-border rounded-full mx-auto mb-6" />
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold text-text">{selectedFood.nameTr}</h2>
@@ -395,8 +412,9 @@ function AddFoodModal({
                 <button
                   onClick={() => setGrams(Math.max(10, grams - 10))}
                   className="w-10 h-10 rounded-xl bg-surface-card border border-border flex items-center justify-center"
+                  aria-label="10 gram azalt"
                 >
-                  <X size={14} className="text-text-muted" />
+                  <Minus size={14} className="text-text-muted" />
                 </button>
                 <input
                   type="number"
@@ -477,7 +495,7 @@ function AddFoodModal({
   // Custom food form
   if (showCustomForm) {
     return (
-      <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50">
+      <div className="fixed inset-0 z-modal flex items-end justify-center bg-black/50">
         <div className="w-full max-w-lg bg-surface rounded-t-3xl p-6 animate-slide-up safe-bottom max-h-[85dvh] flex flex-col">
           <div className="w-10 h-1 bg-border rounded-full mx-auto mb-4" />
           <div className="flex items-center justify-between mb-4">
@@ -627,7 +645,7 @@ function AddFoodModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50">
+    <div className="fixed inset-0 z-modal flex items-end justify-center bg-black/50">
       <div className="w-full max-w-lg bg-surface rounded-t-3xl p-6 animate-slide-up safe-bottom max-h-[80dvh] flex flex-col">
         <div className="w-10 h-1 bg-border rounded-full mx-auto mb-4" />
         <div className="flex items-center justify-between mb-4">
@@ -724,20 +742,23 @@ function AddFoodModal({
         )}
 
         {/* Food List */}
-        <div className="flex-1 overflow-y-auto space-y-1">
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain space-y-1 pb-2">
           {filteredFoods.map((food) => (
             <button
               key={food.id}
               onClick={() => setSelectedFood(food)}
               className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-surface-card transition-colors"
             >
-              <div className="text-left">
-                <p className="text-sm font-medium text-text">{food.nameTr}</p>
-                <p className="text-xs text-text-muted">
-                  {food.per100g.calories} kcal / 100g · P:{food.per100g.protein}g
-                </p>
+              <div className="text-left min-w-0 flex-1">
+                <p className="text-sm font-medium text-text truncate">{food.nameTr}</p>
+                <div className="mt-1 flex flex-wrap items-center gap-1">
+                  <span className="text-[10px] text-text-muted mr-0.5">{food.per100g.calories} kcal/100g</span>
+                  <MacroBadge label="P" value={food.per100g.protein} className="bg-protein/15 text-protein" />
+                  <MacroBadge label="K" value={food.per100g.carbs} className="bg-carbs/15 text-carbs" />
+                  <MacroBadge label="Y" value={food.per100g.fat} className="bg-fat/15 text-fat" />
+                </div>
               </div>
-              <ChevronRight size={14} className="text-text-muted" />
+              <ChevronRight size={14} className="text-text-muted flex-shrink-0 ml-2" />
             </button>
           ))}
 
@@ -751,5 +772,13 @@ function AddFoodModal({
         </div>
       </div>
     </div>
+  );
+}
+
+function MacroBadge({ label, value, className }: { label: string; value: number; className: string }) {
+  return (
+    <span className={`inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-semibold leading-none ${className}`}>
+      {label} {Math.round(value * 10) / 10}g
+    </span>
   );
 }

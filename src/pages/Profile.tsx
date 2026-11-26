@@ -8,7 +8,7 @@ import { useProgressStore } from '../presentation/store/progressStore';
 import { Card } from '../presentation/components/ui/Card';
 import { Button } from '../presentation/components/ui/Button';
 import { Input } from '../presentation/components/ui/Input';
-import { calculateBMR, calculateTDEE, calculateNutritionTargets } from '../domain/usecases/fitness';
+import { calculateBMR, calculateTDEE, calculateNutritionTargets, selectWorkoutProgram } from '../domain/usecases/fitness';
 import type { Profile, FitnessGoal, NutritionGoal } from '../types';
 import {
   User, Target, Dumbbell, Apple, Bell, Shield, LogOut,
@@ -21,7 +21,7 @@ type EditingSection = 'personal' | 'goals' | 'body' | null;
 export function Profile() {
   const navigate = useNavigate();
   const { user, profile, updateProfile, logout } = useUserStore();
-  const { activePlan, workoutLogs } = useWorkoutStore();
+  const { activePlan, workoutLogs, setPlan } = useWorkoutStore();
   const { plan: nutritionPlan } = useNutritionStore();
   const { weightLogs } = useProgressStore();
   const [editing, setEditing] = useState<EditingSection>(null);
@@ -40,6 +40,16 @@ export function Profile() {
 
   const bmr = calculateBMR(profile);
   const tdee = calculateTDEE(profile);
+  const heightM = profile.height / 100;
+  const bmi = heightM > 0 ? Math.round((profile.weight / (heightM * heightM)) * 10) / 10 : 0;
+  const bmiLabel = bmi === 0 ? '-' : bmi < 18.5 ? 'Zayıf' : bmi < 25 ? 'Normal' : bmi < 30 ? 'Fazla kilolu' : 'Obez';
+
+  const toggleBodyweight = () => {
+    const next = !profile.preferBodyweight;
+    const updated = { ...profile, preferBodyweight: next };
+    updateProfile({ preferBodyweight: next });
+    setPlan(selectWorkoutProgram(updated));
+  };
 
   const handleLogout = () => {
     if (confirm('Çıkış yapmak istediğine emin misin? Tüm veriler cihazda kalır.')) {
@@ -126,6 +136,34 @@ export function Profile() {
             <p className="text-[10px] text-text-muted">Hedef kcal</p>
           </Card>
         </div>
+
+        <div className="grid grid-cols-1">
+          <Card variant="elevated" padding="sm" className="flex items-center justify-between">
+            <div>
+              <p className="text-[10px] text-text-muted">BMI (Vücut Kitle İndeksi)</p>
+              <p className="text-lg font-bold text-text">{bmi || '-'}</p>
+            </div>
+            <span className="px-2.5 py-1 rounded-lg bg-primary/10 text-primary text-xs font-medium">{bmiLabel}</span>
+          </Card>
+        </div>
+
+        {/* Equipment-free home program */}
+        <Card variant="elevated" padding="sm">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-text">🏠 Ekipmansız ev antrenmanı</p>
+              <p className="text-[11px] text-text-muted">Alet gerektirmeyen, kademeli ilerleyen program. Değiştirince programın yenilenir.</p>
+            </div>
+            <button
+              role="switch"
+              aria-checked={!!profile.preferBodyweight}
+              onClick={toggleBodyweight}
+              className={`w-12 h-7 rounded-full transition-colors flex-shrink-0 relative ${profile.preferBodyweight ? 'bg-primary' : 'bg-border'}`}
+            >
+              <span className={`absolute top-0.5 w-6 h-6 rounded-full bg-white transition-all ${profile.preferBodyweight ? 'left-[22px]' : 'left-0.5'}`} />
+            </button>
+          </div>
+        </Card>
 
         {/* Additional Body Info */}
         {(profile.bodyFatPercentage || profile.targetWeight) && (

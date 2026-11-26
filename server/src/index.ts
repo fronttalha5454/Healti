@@ -1,5 +1,5 @@
 /**
- * Fitness AI Push Notification Server
+ * Healthi Push Notification Server
  *
  * Lightweight Express backend that:
  * 1. Receives and stores FCM device tokens
@@ -108,7 +108,24 @@ interface EvaluateAndSendRequest {
 const app = express();
 // Render/Railway gibi bir ters proxy arkasında doğru istemci IP'si için (hız sınırı)
 app.set('trust proxy', 1);
-app.use(cors());
+// CORS: CORS_ORIGINS="https://healthi.vercel.app,https://healthi-git-main.vercel.app" (virgülle ayrılmış).
+// Boşsa her origin'e izin verilir (yalnızca geliştirme için). Capacitor APK origin'leri her zaman izinlidir.
+const allowedOrigins = (process.env.CORS_ORIGINS || '')
+  .split(',')
+  .map((o) => o.trim().replace(/\/+$/, ''))
+  .filter(Boolean);
+const nativeOrigins = ['https://localhost', 'http://localhost', 'capacitor://localhost'];
+app.use(
+  cors({
+    origin(origin, callback) {
+      // Origin başlığı olmayan istekler (curl, sunucu-sunucu, sağlık kontrolü) serbest
+      if (!origin || allowedOrigins.length === 0 || nativeOrigins.includes(origin) || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(null, false);
+    },
+  }),
+);
 // AI uç noktaları kendi (daha büyük) JSON gövde sınırını kullanır, bu yüzden genel parser'dan önce bağlanır.
 app.use('/api/ai', createAIRouter());
 app.use(express.json());
@@ -512,7 +529,7 @@ app.post('/api/notifications/evaluate', async (req, res) => {
 initializeFirebase();
 
 app.listen(PORT, () => {
-  console.log(`\n🚀 Fitness AI Push Server running on http://localhost:${PORT}`);
+  console.log(`\n🚀 Healthi Push Server running on http://localhost:${PORT}`);
   console.log(`   Health: http://localhost:${PORT}/api/health`);
   console.log(`   Firebase: ${firebaseInitialized ? '✅ Connected' : '⚠️  Simulated mode'}\n`);
 });

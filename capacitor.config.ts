@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.fitnessai.coach',
-  appName: 'Fitness AI',
+  appName: 'Healthi',
   webDir: 'dist',
   server: {
     androidScheme: 'https',

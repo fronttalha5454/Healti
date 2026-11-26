@@ -1,4 +1,5 @@
 import type { Profile, WorkoutPlan, WorkoutSession, NutritionPlan, Exercise, WorkoutExercise, WorkoutLog } from '../../types';
+import { generateHomeWorkoutPlan, shouldUseHomeProgram } from './homeWorkout';
 import { EXERCISES } from '../../infrastructure/data/data/exercises';
 
 // Mifflin-St Jeor Equation
@@ -69,6 +70,9 @@ export function calculateNutritionTargets(profile: Profile): NutritionPlan {
 }
 
 export function selectWorkoutProgram(profile: Profile): WorkoutPlan {
+  // Evde ve ekipmansız çalışanlar için alet gerektirmeyen özel program
+  if (shouldUseHomeProgram(profile)) return generateHomeWorkoutPlan(profile);
+
   const days = profile.trainingDaysPerWeek;
   const level = profile.fitnessLevel;
 

@@ -57,6 +57,18 @@
   }
 }
 
+/*
+ * Layering scale (single source of truth, avoids overlap bugs):
+ *   header 20 < fab 40 < nav 45 < modal 70 < toast 80
+ * Bottom-sheet modals must sit above the bottom nav, otherwise the
+ * macro preview and "Ekle" button end up hidden behind it.
+ */
+@utility z-header { z-index: 20; }
+@utility z-fab { z-index: 40; }
+@utility z-nav { z-index: 45; }
+@utility z-modal { z-index: 70; }
+@utility z-toast { z-index: 80; }
+
 @layer utilities {
   .safe-bottom {
     padding-bottom: env(safe-area-inset-bottom, 16px);

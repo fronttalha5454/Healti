@@ -509,7 +509,7 @@ function WeeklyAddFoodModal({
 
   if (selectedFood) {
     return (
-      <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50">
+      <div className="fixed inset-0 z-modal flex items-end justify-center bg-black/50">
         <div className="w-full max-w-lg bg-surface rounded-t-3xl p-6 animate-slide-up safe-bottom-nav">
           <div className="w-10 h-1 bg-border rounded-full mx-auto mb-6" />
           <div className="flex items-center justify-between mb-4">
@@ -600,7 +600,7 @@ function WeeklyAddFoodModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50">
+    <div className="fixed inset-0 z-modal flex items-end justify-center bg-black/50">
       <div className="w-full max-w-lg bg-surface rounded-t-3xl animate-slide-up safe-bottom-nav max-h-[85dvh] flex flex-col">
         <div className="flex-shrink-0 bg-surface px-6 pt-6 pb-0">
           <div className="w-10 h-1 bg-border rounded-full mx-auto mb-4" />

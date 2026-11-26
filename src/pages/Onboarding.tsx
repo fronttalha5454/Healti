@@ -91,6 +91,13 @@ export function Onboarding() {
       notificationsEnabled: profile.notificationsEnabled !== false,
       goalRegions: profile.goalRegions || [],
       programSource: profile.programSource || 'ai',
+      // Hiç ekipman seçmeyen "ev" kullanıcıları otomatik olarak ekipmansız programa alınır
+      preferBodyweight:
+        profile.preferBodyweight ??
+        ((profile.environment === 'home') &&
+          (profile.equipment || []).filter((e) => e !== 'bodyweight').length === 0),
+      mealSchedule: profile.mealSchedule || 'standard',
+      calorieCycling: profile.calorieCycling ?? true,
     };
 
     setUser({
@@ -681,6 +688,21 @@ function StepEquipment({ profile, update }: { profile: Partial<Profile>; update:
         <h2 className="text-2xl font-bold text-text mb-2">Ekipmanların</h2>
         <p className="text-text-secondary text-sm">Hangi ekipmanları kullanabilirsin?</p>
       </div>
+
+      <button
+        onClick={() => update({ preferBodyweight: !profile.preferBodyweight, equipment: !profile.preferBodyweight ? ['bodyweight'] : [] })}
+        className={`w-full p-4 rounded-2xl border-2 text-left transition-all ${
+          profile.preferBodyweight ? 'bg-accent/10 border-accent' : 'bg-surface-card border-border'
+        }`}
+      >
+        <div className="flex items-center gap-3">
+          <span className="text-2xl">🏠</span>
+          <div>
+            <p className={`text-sm font-bold ${profile.preferBodyweight ? 'text-accent' : 'text-text'}`}>Hiç aletim yok</p>
+            <p className="text-xs text-text-muted mt-0.5">Evde, ekipmansız ve herkese uygun antrenman programı hazırlayalım</p>
+          </div>
+        </div>
+      </button>
 
       <div className="grid grid-cols-3 gap-2">
         {equipmentList.map((eq) => {

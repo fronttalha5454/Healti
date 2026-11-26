@@ -1,0 +1,22 @@
+# Render Blueprint: Healthi API (Express + Claude proxy + push)
+# Render Dashboard → New → Blueprint → bu repoyu seç.
+services:
+  - type: web
+    name: healthi-api
+    runtime: node
+    plan: free
+    rootDir: server
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      - key: CORS_ORIGINS
+        sync: false   # örn. https://healthi.vercel.app
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: APP_URL
+        sync: false

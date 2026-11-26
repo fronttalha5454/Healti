@@ -1,4 +1,5 @@
 import type { Exercise } from '../../../types';
+import { HOME_EXERCISES } from './homeExercises';
 
 export const EXERCISES: Exercise[] = [
   // CHEST
@@ -959,6 +960,9 @@ export const EXERCISES: Exercise[] = [
     category: 'compound',
   },
 ];
+
+// Equipment-free exercises are defined in homeExercises.ts and merged here.
+EXERCISES.push(...HOME_EXERCISES);
 
 export function getExercisesByMuscle(muscle: string): Exercise[] {
   return EXERCISES.filter((e) => e.muscleGroup === muscle);
