@@ -16,6 +16,102 @@ export interface PersonalRecord {
   previousDate?: string;
 }
 
+// Bir antrenman kaydındaki tamamlanan setlerden kişisel rekorları günceller.
+export function applyPRsFromLog(records: PersonalRecord[], log: WorkoutLog): PersonalRecord[] {
+  const newPRs = [...records];
+  const today = log.date;
+  log.exercises.forEach((exLog) => {
+    const completedSets = exLog.sets.filter((s) => s.completed);
+    if (completedSets.length === 0) return;
+
+    // Max weight PR
+    const maxWeight = Math.max(...completedSets.map((s) => s.weight));
+    if (maxWeight > 0) {
+      const existing = newPRs.find(
+        (pr) => pr.exerciseId === exLog.exerciseId && pr.type === 'max_weight'
+      );
+      if (!existing || maxWeight > existing.value) {
+        const prev = existing ? { value: existing.value, date: existing.date } : undefined;
+        const idx = newPRs.findIndex(
+          (pr) => pr.exerciseId === exLog.exerciseId && pr.type === 'max_weight'
+        );
+        const pr: PersonalRecord = {
+          exerciseId: exLog.exerciseId,
+          exerciseName: getExerciseById(exLog.exerciseId)?.name || exLog.exerciseId,
+          type: 'max_weight',
+          value: maxWeight,
+          unit: 'kg',
+          date: today,
+          previousValue: prev?.value,
+          previousDate: prev?.date,
+        };
+        if (idx >= 0) newPRs[idx] = pr;
+        else newPRs.push(pr);
+      }
+    }
+
+    // Max reps PR (single set)
+    const maxReps = Math.max(...completedSets.map((s) => s.reps));
+    if (maxReps > 0) {
+      const existing = newPRs.find(
+        (pr) => pr.exerciseId === exLog.exerciseId && pr.type === 'max_reps'
+      );
+      if (!existing || maxReps > existing.value) {
+        const prev = existing ? { value: existing.value, date: existing.date } : undefined;
+        const idx = newPRs.findIndex(
+          (pr) => pr.exerciseId === exLog.exerciseId && pr.type === 'max_reps'
+        );
+        const pr: PersonalRecord = {
+          exerciseId: exLog.exerciseId,
+          exerciseName: getExerciseById(exLog.exerciseId)?.name || exLog.exerciseId,
+          type: 'max_reps',
+          value: maxReps,
+          unit: 'tekrar',
+          date: today,
+          previousValue: prev?.value,
+          previousDate: prev?.date,
+        };
+        if (idx >= 0) newPRs[idx] = pr;
+        else newPRs.push(pr);
+      }
+    }
+
+    // Max volume PR (weight * reps * sets)
+    const totalVolume = completedSets.reduce((sum, s) => sum + s.weight * s.reps, 0);
+    if (totalVolume > 0) {
+      const existing = newPRs.find(
+        (pr) => pr.exerciseId === exLog.exerciseId && pr.type === 'max_volume'
+      );
+      if (!existing || totalVolume > existing.value) {
+        const prev = existing ? { value: existing.value, date: existing.date } : undefined;
+        const idx = newPRs.findIndex(
+          (pr) => pr.exerciseId === exLog.exerciseId && pr.type === 'max_volume'
+        );
+        const pr: PersonalRecord = {
+          exerciseId: exLog.exerciseId,
+          exerciseName: getExerciseById(exLog.exerciseId)?.name || exLog.exerciseId,
+          type: 'max_volume',
+          value: Math.round(totalVolume),
+          unit: 'kg×tekrar',
+          date: today,
+          previousValue: prev?.value,
+          previousDate: prev?.date,
+        };
+        if (idx >= 0) newPRs[idx] = pr;
+        else newPRs.push(pr);
+      }
+    }
+  });
+  return newPRs;
+}
+
+// Kayıtlardan kişisel rekorları baştan hesaplar (silme sonrası).
+export function rebuildPRs(logs: WorkoutLog[]): PersonalRecord[] {
+  return [...logs]
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .reduce<PersonalRecord[]>((prs, log) => applyPRsFromLog(prs, log), []);
+}
+
 interface WorkoutState {
   activePlan: WorkoutPlan | null;
   customPrograms: WorkoutPlan[];
@@ -41,6 +137,7 @@ interface WorkoutState {
   toggleSetComplete: (exerciseIndex: number, setIndex: number) => void;
   completeWorkout: (energy: number, rpe: number, notes: string) => void;
   cancelWorkout: () => void;
+  deleteWorkoutLog: (logId: string) => void;
   addExerciseToSession: (sessionId: string, exercise: WorkoutExercise) => void;
   getLogsForExercise: (exerciseId: string) => SetLog[];
   getAnalytics: () => WorkoutAnalytics;
@@ -201,91 +298,7 @@ export const useWorkoutStore = create<WorkoutState>()(
             rpe,
           };
 
-          // Track PRs from completed sets
-          const newPRs = [...state.personalRecords];
-          const today = toLocalDateString(now);
-          state.activeWorkout.exerciseLogs.forEach((exLog) => {
-            const completedSets = exLog.sets.filter((s) => s.completed);
-            if (completedSets.length === 0) return;
-
-            // Max weight PR
-            const maxWeight = Math.max(...completedSets.map((s) => s.weight));
-            if (maxWeight > 0) {
-              const existing = newPRs.find(
-                (pr) => pr.exerciseId === exLog.exerciseId && pr.type === 'max_weight'
-              );
-              if (!existing || maxWeight > existing.value) {
-                const prev = existing ? { value: existing.value, date: existing.date } : undefined;
-                const idx = newPRs.findIndex(
-                  (pr) => pr.exerciseId === exLog.exerciseId && pr.type === 'max_weight'
-                );
-                const pr: PersonalRecord = {
-                  exerciseId: exLog.exerciseId,
-                  exerciseName: getExerciseById(exLog.exerciseId)?.name || exLog.exerciseId,
-                  type: 'max_weight',
-                  value: maxWeight,
-                  unit: 'kg',
-                  date: today,
-                  previousValue: prev?.value,
-                  previousDate: prev?.date,
-                };
-                if (idx >= 0) newPRs[idx] = pr;
-                else newPRs.push(pr);
-              }
-            }
-
-            // Max reps PR (single set)
-            const maxReps = Math.max(...completedSets.map((s) => s.reps));
-            if (maxReps > 0) {
-              const existing = newPRs.find(
-                (pr) => pr.exerciseId === exLog.exerciseId && pr.type === 'max_reps'
-              );
-              if (!existing || maxReps > existing.value) {
-                const prev = existing ? { value: existing.value, date: existing.date } : undefined;
-                const idx = newPRs.findIndex(
-                  (pr) => pr.exerciseId === exLog.exerciseId && pr.type === 'max_reps'
-                );
-                const pr: PersonalRecord = {
-                  exerciseId: exLog.exerciseId,
-                  exerciseName: getExerciseById(exLog.exerciseId)?.name || exLog.exerciseId,
-                  type: 'max_reps',
-                  value: maxReps,
-                  unit: 'tekrar',
-                  date: today,
-                  previousValue: prev?.value,
-                  previousDate: prev?.date,
-                };
-                if (idx >= 0) newPRs[idx] = pr;
-                else newPRs.push(pr);
-              }
-            }
-
-            // Max volume PR (weight * reps * sets)
-            const totalVolume = completedSets.reduce((sum, s) => sum + s.weight * s.reps, 0);
-            if (totalVolume > 0) {
-              const existing = newPRs.find(
-                (pr) => pr.exerciseId === exLog.exerciseId && pr.type === 'max_volume'
-              );
-              if (!existing || totalVolume > existing.value) {
-                const prev = existing ? { value: existing.value, date: existing.date } : undefined;
-                const idx = newPRs.findIndex(
-                  (pr) => pr.exerciseId === exLog.exerciseId && pr.type === 'max_volume'
-                );
-                const pr: PersonalRecord = {
-                  exerciseId: exLog.exerciseId,
-                  exerciseName: getExerciseById(exLog.exerciseId)?.name || exLog.exerciseId,
-                  type: 'max_volume',
-                  value: Math.round(totalVolume),
-                  unit: 'kg×tekrar',
-                  date: today,
-                  previousValue: prev?.value,
-                  previousDate: prev?.date,
-                };
-                if (idx >= 0) newPRs[idx] = pr;
-                else newPRs.push(pr);
-              }
-            }
-          });
+          const newPRs = applyPRsFromLog(state.personalRecords, log);
 
           return {
             workoutLogs: [...state.workoutLogs, log],
@@ -295,6 +308,13 @@ export const useWorkoutStore = create<WorkoutState>()(
         }),
       
       cancelWorkout: () => set({ activeWorkout: null }),
+
+      deleteWorkoutLog: (logId) =>
+        set((state) => {
+          const workoutLogs = state.workoutLogs.filter((l) => l.id !== logId);
+          if (workoutLogs.length === state.workoutLogs.length) return state;
+          return { workoutLogs, personalRecords: rebuildPRs(workoutLogs) };
+        }),
 
       addExerciseToSession: (sessionId, exercise) =>
         set((state) => {
