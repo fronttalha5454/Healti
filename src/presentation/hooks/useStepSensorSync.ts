@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { App as CapApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 import { useHabitsStore } from '../store/habitsStore';
-import { readStepCounter } from '../../services/stepCounter';
+import { getStepSensorStatus, readStepCounter } from '../../services/stepCounter';
 
 const POLL_MS = 60 * 1000;
 
@@ -16,12 +16,31 @@ export async function syncStepSensor(): Promise<number> {
 }
 
 /**
+ * Switch the phone sensor on by itself when it is usable without asking
+ * (sensor present and permission already granted, e.g. Android 9 and older),
+ * unless the user turned it off before.
+ */
+export async function autoEnableStepSensor(): Promise<boolean> {
+  const { stepSensorEnabled, stepSensorOptOut, setStepSensorEnabled } = useHabitsStore.getState();
+  if (stepSensorEnabled) return true;
+  if (stepSensorOptOut) return false;
+  if ((await getStepSensorStatus()) !== 'ready') return false;
+  setStepSensorEnabled(true);
+  await syncStepSensor();
+  return true;
+}
+
+/**
  * While the app is open (and when it comes back to the foreground), pull new
- * steps from the Android step counter. Does nothing on the web or until the
- * user switches the sensor on from the steps page.
+ * steps from the Android step counter. Does nothing on the web.
  */
 export function useStepSensorSync() {
   const enabled = useHabitsStore((s) => s.stepSensorEnabled);
+
+  useEffect(() => {
+    if (enabled || !Capacitor.isNativePlatform()) return;
+    void autoEnableStepSensor();
+  }, [enabled]);
 
   useEffect(() => {
     if (!enabled || !Capacitor.isNativePlatform()) return;
