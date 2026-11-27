@@ -590,7 +590,9 @@ export function Dashboard() {
               style={{ width: `${waterPercent}%` }}
             />
           </div>
-          <p className="text-[10px] text-text-muted text-center mt-1">{Math.round(waterPercent)}% · {Math.round(waterGoal - todayWater)} ml kaldı</p>
+          <p className="text-[10px] text-text-muted text-center mt-1">
+            {Math.round(waterPercent)}% · {todayWater >= waterGoal ? 'hedef tamam' : `${Math.round(waterGoal - todayWater)} ml kaldı`}
+          </p>
 
           {showWaterPanel && (
             <div className="mt-4 space-y-3 animate-slide-up" onClick={(e) => e.stopPropagation()}>
@@ -606,6 +608,13 @@ export function Dashboard() {
                   </button>
                 ))}
               </div>
+
+              <button
+                onClick={() => navigate('/water')}
+                className="w-full text-[11px] text-blue-400 py-1.5 rounded-lg bg-blue-500/5"
+              >
+                Geçmiş, hedef ve hatırlatmalar →
+              </button>
 
               {/* Custom water */}
               <div className="flex items-center gap-2">
@@ -698,7 +707,12 @@ export function Dashboard() {
             <p className="text-[10px] text-text-muted">kg</p>
           </Card>
 
-          <Card variant="elevated" padding="sm" className="text-center">
+          <Card
+            variant="elevated"
+            padding="sm"
+            className="text-center cursor-pointer active:scale-[0.98] transition-transform"
+            onClick={() => navigate('/steps')}
+          >
             <Footprints size={18} className="text-orange-400 mx-auto mb-1" />
             <p className="text-[10px] text-text-muted">Adım</p>
             <p className="text-sm font-bold text-text">

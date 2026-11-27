@@ -9,6 +9,7 @@ import { useHabitsStore } from '../store/habitsStore';
 import { useProgressStore } from '../store/progressStore';
 import { useUserStore } from '../store/userStore';
 import { evaluateNotifications, type NotificationContext } from '../../domain/usecases/notifications';
+import { suggestedBedtime, timeToMinutes } from '../../domain/usecases/dailyTracking';
 import {
   initializePushNotifications,
   sendLocalNotification,
@@ -105,6 +106,17 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     const sleepEntry = sleepStore.getSleepForDate(today);
     const sleepHoursLastNight = sleepEntry ? sleepEntry.durationMinutes / 60 : null;
     const sleepQualityLastNight = sleepEntry ? sleepEntry.quality : null;
+    const recentSleep = sleepStore.getWeeklyEntries(14);
+    let minutesUntilBedtime: number | null = null;
+    if (recentSleep.length >= 3) {
+      const bed = timeToMinutes(suggestedBedtime(recentSleep, sleepStore.targetHours));
+      const nowMin = now.getHours() * 60 + now.getMinutes();
+      // Wrap so a bedtime just after midnight counts as "soon" late in the evening.
+      let diff = bed - nowMin;
+      if (diff < -720) diff += 1440;
+      if (diff > 720) diff -= 1440;
+      minutesUntilBedtime = diff;
+    }
 
     // Habit info
     const habitCompletion = habitsStore.getHabitCompletionForDate(today);
@@ -143,6 +155,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       hasSleepEntryToday: !!sleepEntry,
       sleepHoursLastNight,
       sleepQualityLastNight,
+      minutesUntilBedtime,
       activeHabitCount: habitCompletion.total,
       completedHabitCount: habitCompletion.completed,
       hasRecentCheckin,

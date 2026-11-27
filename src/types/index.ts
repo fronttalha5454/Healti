@@ -450,6 +450,8 @@ export interface StepEntry {
   date: string;
   steps: number;
   timestamp: string;
+  /** Where the steps came from. Missing on older entries (treated as manual). */
+  source?: 'manual' | 'sensor' | 'motion';
 }
 
 // ─── Badges & Achievements ───
@@ -598,7 +600,7 @@ export const NOTIFICATION_TYPE_LABELS: Record<NotificationType, { label: string;
 };
 
 export const NOTIFICATION_NAV_MAP: Record<NotificationType, string> = {
-  water: '/',
+  water: '/water',
   workout: '/workout',
   nutrition: '/nutrition',
   protein: '/nutrition',

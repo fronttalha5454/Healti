@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { lastNDates, sleepDurationMinutes } from '../../domain/usecases/dailyTracking';
 
 export interface SleepEntry {
   id: string;
@@ -16,6 +17,8 @@ interface SleepState {
   entries: SleepEntry[];
   targetHours: number;
   addSleep: (entry: Omit<SleepEntry, 'id' | 'durationMinutes' | 'timestamp'>) => void;
+  /** Update an existing entry (duration is recalculated). */
+  updateSleep: (entryId: string, entry: Omit<SleepEntry, 'id' | 'durationMinutes' | 'timestamp'>) => void;
   removeSleep: (entryId: string) => void;
   getSleepForDate: (date: string) => SleepEntry | null;
   getWeeklyAverage: (days?: number) => number;
@@ -25,15 +28,12 @@ interface SleepState {
   setTargetHours: (hours: number) => void;
 }
 
-function calculateDuration(bedtime: string, wakeTime: string): number {
-  const [bH, bM] = bedtime.split(':').map(Number);
-  const [wH, wM] = wakeTime.split(':').map(Number);
-  let bedMinutes = bH * 60 + bM;
-  let wakeMinutes = wH * 60 + wM;
-  if (wakeMinutes <= bedMinutes) {
-    wakeMinutes += 24 * 60;
-  }
-  return wakeMinutes - bedMinutes;
+const calculateDuration = sleepDurationMinutes;
+
+/** Entries whose date falls within the last `days` local days (today included). */
+function recentEntries(entries: SleepEntry[], days: number): SleepEntry[] {
+  const dates = new Set(lastNDates(days));
+  return entries.filter((e) => dates.has(e.date));
 }
 
 export const useSleepStore = create<SleepState>()(
@@ -42,17 +42,30 @@ export const useSleepStore = create<SleepState>()(
       entries: [],
       targetHours: 7.5,
 
+      // One entry per night: logging the same date again replaces it.
       addSleep: (entry) =>
         set((state) => ({
           entries: [
-            ...state.entries,
+            ...state.entries.filter((e) => e.date !== entry.date),
             {
               ...entry,
               id: `sleep_${Date.now()}`,
               durationMinutes: calculateDuration(entry.bedtime, entry.wakeTime),
               timestamp: new Date().toISOString(),
             },
-          ],
+          ].sort((x, y) => x.date.localeCompare(y.date)),
+        })),
+
+      updateSleep: (entryId, entry) =>
+        set((state) => ({
+          entries: state.entries
+            .filter((e) => e.id === entryId || e.date !== entry.date)
+            .map((e) =>
+              e.id === entryId
+                ? { ...e, ...entry, durationMinutes: calculateDuration(entry.bedtime, entry.wakeTime) }
+                : e
+            )
+            .sort((x, y) => x.date.localeCompare(y.date)),
         })),
 
       removeSleep: (entryId) =>
@@ -67,9 +80,7 @@ export const useSleepStore = create<SleepState>()(
 
       getWeeklyAverage: (days = 7) => {
         const { entries } = get();
-        const cutoff = new Date();
-        cutoff.setDate(cutoff.getDate() - days);
-        const recent = entries.filter((e) => new Date(e.date) >= cutoff);
+        const recent = recentEntries(entries, days);
         if (recent.length === 0) return 0;
         const totalMinutes = recent.reduce((sum, e) => sum + e.durationMinutes, 0);
         return Math.round((totalMinutes / recent.length / 60) * 10) / 10;
@@ -77,18 +88,12 @@ export const useSleepStore = create<SleepState>()(
 
       getWeeklyEntries: (days = 7) => {
         const { entries } = get();
-        const cutoff = new Date();
-        cutoff.setDate(cutoff.getDate() - days);
-        return entries.filter((e) => new Date(e.date) >= cutoff);
+        return recentEntries(entries, days);
       },
 
       getSleepTrend: (days = 14) => {
         const { entries } = get();
-        const cutoff = new Date();
-        cutoff.setDate(cutoff.getDate() - days);
-        const recent = entries
-          .filter((e) => new Date(e.date) >= cutoff)
-          .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        const recent = recentEntries(entries, days).sort((a, b) => a.date.localeCompare(b.date));
         if (recent.length < 4) return 'stable';
         const mid = Math.floor(recent.length / 2);
         const firstHalf = recent.slice(0, mid);
@@ -103,9 +108,7 @@ export const useSleepStore = create<SleepState>()(
 
       getWeeklyQualityAverage: (days = 7) => {
         const { entries } = get();
-        const cutoff = new Date();
-        cutoff.setDate(cutoff.getDate() - days);
-        const recent = entries.filter((e) => new Date(e.date) >= cutoff);
+        const recent = recentEntries(entries, days);
         if (recent.length === 0) return 0;
         const total = recent.reduce((sum, e) => sum + e.quality, 0);
         return Math.round((total / recent.length) * 10) / 10;

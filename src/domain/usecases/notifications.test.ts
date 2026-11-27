@@ -732,8 +732,18 @@ describe('evaluateNotifications', () => {
       const result = evaluateNotifications(ctx, prefs, canSendAlways);
       const waterNotif = result.find((n) => n.type === 'water');
       if (waterNotif) {
-        expect(waterNotif.navigationPath).toBe('/');
+        expect(waterNotif.navigationPath).toBe('/water');
       }
+    });
+
+    it('bedtime reminder fires in the 45 minutes before the suggested bedtime', () => {
+      const sleepTitle = (r: ReturnType<typeof evaluateNotifications>) =>
+        r.some((n) => n.type === 'sleep' && n.title === '😴 Uyku Hatırlatma');
+      expect(sleepTitle(evaluateNotifications(makeContext({ currentHour: 22, minutesUntilBedtime: 30 }), prefs, canSendAlways))).toBe(true);
+      expect(sleepTitle(evaluateNotifications(makeContext({ currentHour: 22, minutesUntilBedtime: 90 }), prefs, canSendAlways))).toBe(false);
+      expect(sleepTitle(evaluateNotifications(makeContext({ currentHour: 23, minutesUntilBedtime: -10 }), prefs, canSendAlways))).toBe(false);
+      // Without a known bedtime it falls back to 22:00-24:00
+      expect(sleepTitle(evaluateNotifications(makeContext({ currentHour: 22, minutesUntilBedtime: null }), prefs, canSendAlways))).toBe(true);
     });
 
     it('notification has correct navigation path for workout', () => {
