@@ -38,8 +38,9 @@ export function Profile() {
     return <EditBody profile={profile} onBack={() => setEditing(null)} onSave={(p) => { updateProfile(p); setEditing(null); }} />;
   }
 
-  const bmr = calculateBMR(profile);
-  const tdee = calculateTDEE(profile);
+  const bmr = Math.round(calculateBMR(profile));
+  const tdee = Math.round(calculateTDEE(profile));
+  const targetCalories = nutritionPlan?.calories || calculateNutritionTargets(profile).calories;
   const heightM = profile.height / 100;
   const bmi = heightM > 0 ? Math.round((profile.weight / (heightM * heightM)) * 10) / 10 : 0;
   const bmiLabel = bmi === 0 ? '-' : bmi < 18.5 ? 'Zayıf' : bmi < 25 ? 'Normal' : bmi < 30 ? 'Fazla kilolu' : 'Obez';
@@ -85,7 +86,7 @@ export function Profile() {
     {
       section: 'Beslenme',
       items: [
-        { icon: Apple, label: 'Beslenme Hedefi', desc: `${nutritionPlan?.calories || 0} kcal`, action: () => navigate('/nutrition') },
+        { icon: Apple, label: 'Beslenme Hedefi', desc: `${targetCalories} kcal`, action: () => navigate('/nutrition') },
       ],
     },
     {
@@ -132,7 +133,7 @@ export function Profile() {
             <p className="text-[10px] text-text-muted">TDEE</p>
           </Card>
           <Card variant="elevated" padding="sm" className="text-center">
-            <p className="text-lg font-bold text-warning">{nutritionPlan?.calories || 0}</p>
+            <p className="text-lg font-bold text-warning">{targetCalories}</p>
             <p className="text-[10px] text-text-muted">Hedef kcal</p>
           </Card>
         </div>
