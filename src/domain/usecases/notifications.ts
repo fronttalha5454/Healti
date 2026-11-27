@@ -32,6 +32,8 @@ export interface NotificationContext {
   hasSleepEntryToday: boolean;
   sleepHoursLastNight: number | null;
   sleepQualityLastNight: number | null;
+  /** Minutes until the suggested bedtime (negative once it has passed). Optional. */
+  minutesUntilBedtime?: number | null;
   // Habits
   activeHabitCount: number;
   completedHabitCount: number;
@@ -167,10 +169,13 @@ const NOTIFICATION_TEMPLATES: NotificationTemplate[] = [
     title: '😴 Uyku Hatırlatma',
     message: 'Daha iyi kurtarma için dinlenme zamanına yaklaşılıyor. Uyku rutinini başlatmayı düşün.',
     icon: '😴',
-    shouldFire: (ctx) =>
-      ctx.currentHour >= 22 &&
-      ctx.currentHour < 24 &&
-      !ctx.hasSleepEntryToday,
+    shouldFire: (ctx) => {
+      // With a known bedtime, remind in the 45 minutes before it.
+      if (ctx.minutesUntilBedtime !== undefined && ctx.minutesUntilBedtime !== null) {
+        return ctx.minutesUntilBedtime > 0 && ctx.minutesUntilBedtime <= 45;
+      }
+      return ctx.currentHour >= 22 && ctx.currentHour < 24 && !ctx.hasSleepEntryToday;
+    },
   },
   {
     type: 'sleep',
@@ -311,7 +316,7 @@ export function evaluateNotifications(
 
 function getNavigationPath(type: NotificationType): string {
   const pathMap: Record<NotificationType, string> = {
-    water: '/',
+    water: '/water',
     workout: '/workout',
     nutrition: '/nutrition',
     protein: '/nutrition',

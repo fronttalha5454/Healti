@@ -7,6 +7,7 @@ import { ErrorBoundary } from './presentation/components/ErrorBoundary';
 import { NotificationProvider } from './presentation/components/NotificationProvider';
 import { App as CapApp } from '@capacitor/app';
 import { useAuthSync } from './presentation/hooks/useAuthSync';
+import { useStepSensorSync } from './presentation/hooks/useStepSensorSync';
 
 const Onboarding = lazy(() => import('./pages/Onboarding').then(m => ({ default: m.Onboarding })));
 const Dashboard = lazy(() => import('./pages/Dashboard').then(m => ({ default: m.Dashboard })));
@@ -27,6 +28,8 @@ const Login = lazy(() => import('./pages/Login').then(m => ({ default: m.Login }
 const Register = lazy(() => import('./pages/Register').then(m => ({ default: m.Register })));
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword').then(m => ({ default: m.ForgotPassword })));
 const WeeklyMealPlan = lazy(() => import('./pages/WeeklyMealPlan').then(m => ({ default: m.WeeklyMealPlan })));
+const WaterTracking = lazy(() => import('./pages/WaterTracking').then(m => ({ default: m.WaterTracking })));
+const StepTracking = lazy(() => import('./pages/StepTracking').then(m => ({ default: m.StepTracking })));
 const NotificationCenter = lazy(() => import('./pages/NotificationCenter').then(m => ({ default: m.NotificationCenter })));
 
 /** Handles Capacitor hardware back button – navigates back instead of exiting */
@@ -50,6 +53,12 @@ function BackButtonHandler() {
     };
   }, []);
 
+  return null;
+}
+
+/** Keeps phone step counter data flowing into the store while logged in. */
+function StepSensorSync() {
+  useStepSensorSync();
   return null;
 }
 
@@ -88,6 +97,7 @@ function AppRoutes() {
     <NotificationProvider>
     <div className="flex flex-col min-h-[100dvh] bg-bg">
       <BackButtonHandler />
+      <StepSensorSync />
       <FloatingAIButton />
       <main className="flex-1 pb-28 overflow-y-auto">
         <Suspense fallback={<PageLoader />}>
@@ -105,6 +115,8 @@ function AppRoutes() {
           <Route path="/weekly-report" element={<WeeklyReport />} />
           <Route path="/shopping" element={<ShoppingList />} />
           <Route path="/sleep" element={<SleepTracking />} />
+          <Route path="/water" element={<WaterTracking />} />
+          <Route path="/steps" element={<StepTracking />} />
           <Route path="/ai-food" element={<AIFoodAdd />} />
           <Route path="/notifications" element={<NotificationCenter />} />
           <Route path="/notification-settings" element={<NotificationSettings />} />

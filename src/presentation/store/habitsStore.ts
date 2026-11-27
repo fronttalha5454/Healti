@@ -2,12 +2,17 @@ import { toLocalDateString } from '../../utils/date';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { DailyHabit, HabitLog, StepEntry } from '../../types';
+import { stepSensorDelta } from '../../domain/usecases/dailyTracking';
 
 interface HabitsState {
   habits: DailyHabit[];
   habitLogs: HabitLog[];
   stepEntries: StepEntry[];
   stepGoal: number;
+  /** Phone step sensor sync is switched on by the user. */
+  stepSensorEnabled: boolean;
+  /** Last cumulative reading from the phone's step counter. */
+  stepSensorLastReading: number | null;
 
   // Habit CRUD
   addHabit: (name: string, icon: string) => void;
@@ -19,7 +24,12 @@ interface HabitsState {
   removeHabitLog: (logId: string) => void;
 
   // Step tracking
-  addSteps: (steps: number, date?: string) => void;
+  addSteps: (steps: number, date?: string, source?: StepEntry['source']) => void;
+  /** Replace all of a day's entries with a single manual total. */
+  setStepsForDate: (date: string, total: number) => void;
+  setStepSensorEnabled: (enabled: boolean) => void;
+  /** Apply a new cumulative sensor reading; returns the steps added to today. */
+  applyStepSensorReading: (reading: number) => number;
   removeStepEntry: (entryId: string) => void;
   setStepGoal: (goal: number) => void;
 
@@ -42,6 +52,8 @@ export const useHabitsStore = create<HabitsState>()(
       habitLogs: [],
       stepEntries: [],
       stepGoal: 8000,
+      stepSensorEnabled: false,
+      stepSensorLastReading: null,
 
       addHabit: (name, icon) =>
         set((state) => ({
@@ -102,18 +114,65 @@ export const useHabitsStore = create<HabitsState>()(
           habitLogs: state.habitLogs.filter((l) => l.id !== logId),
         })),
 
-      addSteps: (steps, date) =>
+      addSteps: (steps, date, source = 'manual') => {
+        if (!Number.isFinite(steps) || steps <= 0) return;
+        const day = date || toLocalDateString();
+        set((state) => {
+          // Sensor and motion steps are merged into one entry per day and source.
+          if (source !== 'manual') {
+            const existing = state.stepEntries.find((e) => e.date === day && e.source === source);
+            if (existing) {
+              return {
+                stepEntries: state.stepEntries.map((e) =>
+                  e.id === existing.id ? { ...e, steps: e.steps + Math.round(steps), timestamp: new Date().toISOString() } : e
+                ),
+              };
+            }
+          }
+          return {
+            stepEntries: [
+              ...state.stepEntries,
+              {
+                id: `step_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+                date: day,
+                steps: Math.round(steps),
+                timestamp: new Date().toISOString(),
+                source,
+              },
+            ],
+          };
+        });
+      },
+
+      setStepsForDate: (date, total) =>
         set((state) => ({
           stepEntries: [
-            ...state.stepEntries,
-            {
-              id: `step_${Date.now()}`,
-              date: date || toLocalDateString(),
-              steps,
-              timestamp: new Date().toISOString(),
-            },
+            ...state.stepEntries.filter((e) => e.date !== date),
+            ...(total > 0
+              ? [{
+                  id: `step_${Date.now()}`,
+                  date,
+                  steps: Math.round(total),
+                  timestamp: new Date().toISOString(),
+                  source: 'manual' as const,
+                }]
+              : []),
           ],
         })),
+
+      setStepSensorEnabled: (enabled) =>
+        set(enabled ? { stepSensorEnabled: true } : { stepSensorEnabled: false, stepSensorLastReading: null }),
+
+      applyStepSensorReading: (reading) => {
+        const delta = stepSensorDelta(get().stepSensorLastReading, reading);
+        set({ stepSensorLastReading: reading });
+        // Ignore absurd jumps (e.g. a corrupted baseline): more than 60k steps between readings.
+        if (delta > 0 && delta < 60000) {
+          get().addSteps(delta, toLocalDateString(), 'sensor');
+          return delta;
+        }
+        return 0;
+      },
 
       removeStepEntry: (entryId) =>
         set((state) => ({
