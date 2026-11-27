@@ -25,7 +25,7 @@ import {
   requestMotionPermission,
   type SensorStatus,
 } from '../services/stepCounter';
-import { syncStepSensor } from '../presentation/hooks/useStepSensorSync';
+import { syncStepSensor, autoEnableStepSensor } from '../presentation/hooks/useStepSensorSync';
 
 const tooltipStyle = {
   backgroundColor: '#1e293b',
@@ -44,7 +44,7 @@ export function StepTracking() {
   const navigate = useNavigate();
   const {
     stepEntries, stepGoal, setStepGoal, addSteps, removeStepEntry, setStepsForDate,
-    stepSensorEnabled, setStepSensorEnabled,
+    stepSensorEnabled, setStepSensorEnabled, updateStepEntry, walkModeAuto, setWalkModeAuto,
   } = useHabitsStore();
   const profile = useUserStore((s) => s.profile);
   const [range, setRange] = useState<7 | 30>(7);
@@ -52,6 +52,8 @@ export function StepTracking() {
   const [editingTotal, setEditingTotal] = useState(false);
   const [sensorStatus, setSensorStatus] = useState<SensorStatus | null>(null);
   const [syncMsg, setSyncMsg] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState('');
 
   const today = toLocalDateString();
 
@@ -84,7 +86,27 @@ export function StepTracking() {
   // ─── Phone sensor ───
   useEffect(() => {
     let alive = true;
-    getStepSensorStatus().then((s) => alive && setSensorStatus(s));
+    (async () => {
+      // Usable without a prompt (Android 9 and older): switch on right away.
+      await autoEnableStepSensor();
+      const s = await getStepSensorStatus();
+      if (!alive) return;
+      setSensorStatus(s);
+      const st = useHabitsStore.getState();
+      // Needs the activity permission: ask once, automatically.
+      if (s === 'needs_permission' && !st.stepSensorEnabled && !st.stepSensorOptOut) {
+        const granted = await requestStepPermission();
+        if (!alive) return;
+        if (granted) {
+          setSensorStatus('ready');
+          st.setStepSensorEnabled(true);
+          await syncStepSensor();
+          setSyncMsg('Telefon sensörü açıldı, adımların otomatik sayılıyor.');
+        } else {
+          st.setStepSensorEnabled(false);
+        }
+      }
+    })();
     return () => {
       alive = false;
     };
@@ -103,6 +125,7 @@ export function StepTracking() {
     }
     if (status !== 'ready') return;
     setStepSensorEnabled(true);
+    setWalking(false);
     await syncStepSensor();
     setSyncMsg('Bağlandı. Bundan sonra attığın adımlar telefonun sensöründen otomatik eklenecek.');
   };
@@ -129,6 +152,11 @@ export function StepTracking() {
       if (detectorRef.current?.push(mag, e.timeStamp || performance.now())) {
         pendingRef.current++;
         setWalkSteps(detectorRef.current.steps);
+        // Save in small batches so the day total grows live and manual edits stack on top.
+        if (pendingRef.current >= 5) {
+          useHabitsStore.getState().addSteps(pendingRef.current, toLocalDateString(), 'motion');
+          pendingRef.current = 0;
+        }
       }
     };
     window.addEventListener('devicemotion', onMotion);
@@ -145,8 +173,10 @@ export function StepTracking() {
   const toggleWalking = async () => {
     if (walking) {
       setWalking(false);
+      setWalkModeAuto(false);
       return;
     }
+    setWalkModeAuto(true);
     const ok = await requestMotionPermission();
     if (!ok) {
       setSyncMsg('Hareket sensörüne erişilemedi.');
@@ -157,6 +187,25 @@ export function StepTracking() {
   };
 
   const showMotion = motionSupported() && !(stepSensorEnabled && sensorStatus === 'ready');
+
+  // No hardware sensor: start walking mode by itself (unless the user stopped it before).
+  // iOS needs a tap to grant motion access, so it only auto-starts where no prompt is needed.
+  useEffect(() => {
+    if (!sensorStatus || walking || !walkModeAuto) return;
+    if (sensorStatus === 'ready' || sensorStatus === 'needs_permission') return;
+    if (!motionSupported() || !(navigator.maxTouchPoints > 0)) return;
+    const DME = (window as unknown as { DeviceMotionEvent?: { requestPermission?: unknown } }).DeviceMotionEvent;
+    if (DME && typeof DME.requestPermission === 'function') return;
+    setWalking(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sensorStatus, walkModeAuto]);
+
+  const saveEdit = () => {
+    if (!editingId) return;
+    const val = parseInt(editValue, 10);
+    if (val >= 0 && val <= 100000) updateStepEntry(editingId, val);
+    setEditingId(null);
+  };
 
   // ─── Manual ───
   const submitManual = () => {
@@ -256,7 +305,7 @@ export function StepTracking() {
                 <p className="text-sm font-semibold text-text">Yürüyüş modu</p>
                 <p className="text-[11px] text-text-muted mt-0.5">
                   {walking
-                    ? 'Sayıyor… Telefonu cebinde ya da elinde taşı, ekran açık kalsın.'
+                    ? 'Açık, sayıyor. Adımlar günün toplamına anında ekleniyor; ekran açık kalsın.'
                     : 'Yürürken başlat, telefonun hareket sensörüyle adımlarını say.'}
                 </p>
               </div>
@@ -323,7 +372,35 @@ export function StepTracking() {
                 <div key={e.id} className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-surface text-xs">
                   <span className="text-text-secondary">{SOURCE_LABEL[e.source || 'manual']}</span>
                   <div className="flex items-center gap-2">
-                    <span className="text-text font-medium">{e.steps.toLocaleString('tr-TR')}</span>
+                    {editingId === e.id ? (
+                      <>
+                        <input
+                          type="number"
+                          inputMode="numeric"
+                          autoFocus
+                          value={editValue}
+                          onChange={(ev) => setEditValue(ev.target.value)}
+                          onKeyDown={(ev) => {
+                            if (ev.key === 'Enter') saveEdit();
+                            if (ev.key === 'Escape') setEditingId(null);
+                          }}
+                          className="w-20 bg-surface-card border border-border rounded-lg px-2 py-1 text-xs text-text text-right"
+                        />
+                        <button onClick={saveEdit} className="px-2 py-1 rounded-lg bg-orange-500 text-white text-[11px]">Kaydet</button>
+                      </>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          setEditingId(e.id);
+                          setEditValue(String(e.steps));
+                        }}
+                        className="flex items-center gap-1 text-text font-medium"
+                        aria-label="Düzenle"
+                      >
+                        {e.steps.toLocaleString('tr-TR')}
+                        <Pencil size={10} className="text-text-muted" />
+                      </button>
+                    )}
                     <button onClick={() => removeStepEntry(e.id)} className="p-0.5" aria-label="Sil">
                       <X size={12} className="text-danger" />
                     </button>

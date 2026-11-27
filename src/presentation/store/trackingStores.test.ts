@@ -42,10 +42,24 @@ describe('habitsStore steps', () => {
     expect(useHabitsStore.getState().stepEntries).toHaveLength(0);
   });
 
-  it('disabling the sensor clears the baseline', () => {
+  it('disabling the sensor clears the baseline and remembers the opt-out', () => {
     useHabitsStore.getState().applyStepSensorReading(50000);
     useHabitsStore.getState().setStepSensorEnabled(false);
     expect(useHabitsStore.getState().stepSensorLastReading).toBeNull();
+    expect(useHabitsStore.getState().stepSensorOptOut).toBe(true);
+    useHabitsStore.getState().setStepSensorEnabled(true);
+    expect(useHabitsStore.getState().stepSensorOptOut).toBe(false);
+  });
+
+  it('a manually edited entry keeps counting on top from the sensor', () => {
+    useHabitsStore.getState().applyStepSensorReading(1000);
+    useHabitsStore.getState().applyStepSensorReading(3000); // +2000 sensor
+    const id = useHabitsStore.getState().stepEntries[0].id;
+    useHabitsStore.getState().updateStepEntry(id, 2500); // user corrects it
+    useHabitsStore.getState().applyStepSensorReading(3400); // +400 more
+    expect(useHabitsStore.getState().getStepTotalForDate(today)).toBe(2900);
+    useHabitsStore.getState().updateStepEntry(id, 0);
+    expect(useHabitsStore.getState().stepEntries).toHaveLength(0);
   });
 });
 

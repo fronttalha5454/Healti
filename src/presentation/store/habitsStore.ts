@@ -13,6 +13,10 @@ interface HabitsState {
   stepSensorEnabled: boolean;
   /** Last cumulative reading from the phone's step counter. */
   stepSensorLastReading: number | null;
+  /** User switched the phone sensor off themselves, so don't auto-enable it again. */
+  stepSensorOptOut: boolean;
+  /** Start walking mode automatically on the steps page when there's no hardware sensor. */
+  walkModeAuto: boolean;
 
   // Habit CRUD
   addHabit: (name: string, icon: string) => void;
@@ -28,6 +32,9 @@ interface HabitsState {
   /** Replace all of a day's entries with a single manual total. */
   setStepsForDate: (date: string, total: number) => void;
   setStepSensorEnabled: (enabled: boolean) => void;
+  setWalkModeAuto: (auto: boolean) => void;
+  /** Change the step count of a single entry (0 removes it). */
+  updateStepEntry: (entryId: string, steps: number) => void;
   /** Apply a new cumulative sensor reading; returns the steps added to today. */
   applyStepSensorReading: (reading: number) => number;
   removeStepEntry: (entryId: string) => void;
@@ -54,6 +61,8 @@ export const useHabitsStore = create<HabitsState>()(
       stepGoal: 8000,
       stepSensorEnabled: false,
       stepSensorLastReading: null,
+      stepSensorOptOut: false,
+      walkModeAuto: true,
 
       addHabit: (name, icon) =>
         set((state) => ({
@@ -161,7 +170,21 @@ export const useHabitsStore = create<HabitsState>()(
         })),
 
       setStepSensorEnabled: (enabled) =>
-        set(enabled ? { stepSensorEnabled: true } : { stepSensorEnabled: false, stepSensorLastReading: null }),
+        set(
+          enabled
+            ? { stepSensorEnabled: true, stepSensorOptOut: false }
+            : { stepSensorEnabled: false, stepSensorLastReading: null, stepSensorOptOut: true }
+        ),
+
+      setWalkModeAuto: (auto) => set({ walkModeAuto: auto }),
+
+      updateStepEntry: (entryId, steps) =>
+        set((state) => ({
+          stepEntries:
+            !Number.isFinite(steps) || steps <= 0
+              ? state.stepEntries.filter((e) => e.id !== entryId)
+              : state.stepEntries.map((e) => (e.id === entryId ? { ...e, steps: Math.round(steps) } : e)),
+        })),
 
       applyStepSensorReading: (reading) => {
         const delta = stepSensorDelta(get().stepSensorLastReading, reading);
